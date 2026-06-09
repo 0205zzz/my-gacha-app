@@ -1,4 +1,3 @@
-cat > /mnt/user-data/outputs/娃娃機記帳v7.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -8,7 +7,7 @@ cat > /mnt/user-data/outputs/娃娃機記帳v7.html << 'HTMLEOF'
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳</title>
+<title>娃娃機記帳 - 雲端一鍵登入版</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -41,10 +40,6 @@ select option{background:var(--bg3)}
 button{border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 16px;background:var(--bg3);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 button:active{opacity:.65}
 button.prim{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
-button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
-/* 返回按鈕綠色 */
-button.back{background:transparent;border:none;color:var(--green);font-size:15px;font-weight:600;padding:6px 10px;gap:4px}
-button.back i{font-size:17px}
 
 .root{height:100%;display:flex;flex-direction:column}
 .nav{height:calc(var(--nav-h) + env(safe-area-inset-bottom));background:var(--bg2);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;z-index:100}
@@ -53,21 +48,23 @@ button.back i{font-size:17px}
 .nb i{font-size:20px}
 
 .pages{flex:1;position:relative;overflow:hidden}
-.page{position:absolute;inset:0;overflow-y:auto;padding:0 16px;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);display:none;flex-direction:column}
+.page{position:absolute;inset:0;overflow-y:auto;padding:0 16px 20px;display:none;flex-direction:column}
 .page.on{display:flex}
-
-/* sub pages (machine detail / other detail) — fixed, above everything */
-.sub{position:fixed;inset:0;background:var(--bg);overflow-y:auto;padding:0 16px;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);display:none;flex-direction:column;z-index:50}
+.sub{position:absolute;inset:0;background:var(--bg);overflow-y:auto;padding:0 16px 20px;display:none;flex-direction:column;z-index:50}
 .sub.on{display:flex}
 
 .topbar{display:flex;align-items:center;gap:8px;padding:14px 0 11px;position:sticky;top:0;background:var(--bg);z-index:10;flex-shrink:0}
 .topbar h2{flex:1;font-size:17px;font-weight:600;letter-spacing:-.3px}
+.back{background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:600;padding:6px 12px;gap:4px;}
+.back i{font-size:15px}
 
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
-.tap{cursor:pointer}.tap:active{opacity:.75}
+.tap{cursor:pointer}
+.tap:active{opacity:.75}
 
 .sg{display:grid;gap:8px;margin-bottom:12px}
-.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:1fr 1fr 1fr}
+.c2{grid-template-columns:1fr 1fr}
+.c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
 .st .vl{font-size:16px;font-weight:600}
@@ -100,20 +97,22 @@ tr:last-child td{border-bottom:none}
 .sh{background:var(--bg2);border-radius:16px 16px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:20px 16px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
 .shd{display:flex;align-items:center;margin-bottom:16px}
 .shd span{flex:1;font-size:16px;font-weight:600}
+button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 
 .mg{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;font-size:12px;margin-top:8px}
 .mc .lb{color:var(--text3);font-size:11px;margin-bottom:2px}
 
 .pg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .pc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden}
-.pi{width:100%;height:110px;object-fit:cover;display:block}
+.pi {width:100%;height:110px;object-fit:cover;display:block}
 .pph{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text3);font-size:32px}
 .pinfo{padding:8px 10px 10px}
-.pdel{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:rgba(200,0,0,.85);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;z-index:20;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.pdel{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
+.pdel:active{background:var(--red)}
 
 .chartw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
 .bars{display:flex;align-items:flex-end;gap:5px;height:90px;overflow-x:auto;padding-bottom:22px}
-.bg2c{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:34px}
+.bg2{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:34px}
 .bp{display:flex;align-items:flex-end;gap:2px}
 .bar{border-radius:3px 3px 0 0;min-height:2px}
 .bi{background:var(--green)}.be{background:var(--red)}
@@ -144,23 +143,18 @@ tr:last-child td{border-bottom:none}
 .thsw{width:28px;height:28px;border-radius:50%;margin:0 auto 6px;border:2px solid var(--border)}
 .rphint{font-size:12px;color:var(--text3);margin-top:5px}
 
-.setting-row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid var(--border)}
-.setting-row:last-child{border-bottom:none}
-.setting-row .sr-label{flex:1;font-size:14px}
-.setting-row .sr-sub{font-size:12px;color:var(--text3);margin-top:2px}
-
-.oth-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:12px;margin-top:6px}
-.oth-c .oth-lb{color:var(--text3);font-size:11px;margin-bottom:1px}
+.g-user-box{display:flex;align-items:center;gap:12px;margin-top:10px}
+.g-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg4)}
+.g-info{flex:1;font-size:13px;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="root">
   <div class="pages" id="pages">
 
-    <!-- 機台 -->
     <div id="p-machines" class="page on">
       <div class="topbar"><h2><i class="ti ti-crane"></i> 娃娃機</h2>
-        <button onclick="openAddMachine()"><i class="ti ti-plus"></i> 新增</button>
+        <button id="btn-add-m" onclick="openAddMachine()" disabled><i class="ti ti-plus"></i> 新增</button>
       </div>
       <div id="home-stats" class="sg c3"></div>
       <div id="home-chart" class="chartw" style="display:none">
@@ -175,7 +169,6 @@ tr:last-child td{border-bottom:none}
       <div id="empty-home" class="empty" style="display:none"><i class="ti ti-crane"></i>還沒有機台<br><span style="font-size:13px">點右上角新增</span></div>
     </div>
 
-    <!-- 月報表 -->
     <div id="p-monthly" class="page">
       <div class="topbar"><h2><i class="ti ti-calendar-stats"></i> 月報表</h2>
         <button onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> 匯出</button>
@@ -183,7 +176,6 @@ tr:last-child td{border-bottom:none}
       <div id="monthly-content"></div>
     </div>
 
-    <!-- 獎品 -->
     <div id="p-prizes" class="page">
       <div class="topbar"><h2><i class="ti ti-gift"></i> 獎品庫存</h2>
         <button onclick="showAddPrize()"><i class="ti ti-plus"></i> 新增</button>
@@ -207,23 +199,20 @@ tr:last-child td{border-bottom:none}
       <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒有庫存</div>
     </div>
 
-    <!-- 其他成本 -->
     <div id="p-other" class="page">
       <div class="topbar"><h2><i class="ti ti-receipt"></i> 其他成本</h2>
         <button onclick="openAddCat()"><i class="ti ti-plus"></i> 類別</button>
       </div>
-      <div id="other-monthly-summary" class="sg c3"></div>
+      <div id="other-monthly-summary"></div>
       <div id="other-list"></div>
       <div id="empty-other" class="empty" style="display:none"><i class="ti ti-receipt"></i>還沒有類別</div>
     </div>
 
-    <!-- 設定 -->
     <div id="p-settings" class="page">
       <div class="topbar"><h2><i class="ti ti-settings"></i> 設定</h2></div>
       
-      <!-- 連接Google -->
       <div class="ssec">
-        <div class="sslbl">Google 帳號聯動 (安全防丟)</div>
+        <div class="sslbl">Google 帳號聯動 (雲端一鍵版)</div>
         <div class="card">
           <div style="font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px">
             <span id="sync-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a47"></span>
@@ -245,7 +234,6 @@ tr:last-child td{border-bottom:none}
         </div>
       </div>
 
-      <!-- 外觀 -->
       <div class="ssec">
         <div class="sslbl">外觀</div>
         <div class="card">
@@ -257,84 +245,48 @@ tr:last-child td{border-bottom:none}
         </div>
       </div>
 
-      <!-- 備份 -->
       <div class="ssec">
-        <div class="sslbl">備份 / 還原</div>
+        <div class="sslbl">本地手動備份 / 還原</div>
         <div class="card">
           <div class="setting-row">
-            <div><div class="sr-label">匯出備份</div><div class="sr-sub">下載 JSON 備份檔，可存至 Google 雲端硬碟</div></div>
-            <button class="prim" id="export-btn" style="flex-shrink:0;margin-left:8px"><i class="ti ti-download"></i></button>
+            <div><div class="sr-label">匯出 JSON 備份</div><div class="sr-sub">下載本地文字檔備份</div></div>
+            <button class="prim" onclick="doExport()"><i class="ti ti-download"></i> 匯出</button>
           </div>
-          <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px">
-            <div><div class="sr-label">匯入備份</div><div class="sr-sub">選擇 JSON 備份檔還原資料</div></div>
-            <input type="file" id="import-file" accept=".json" style="width:100%">
-            <button class="prim" id="import-btn" style="width:100%;justify-content:center"><i class="ti ti-upload"></i> 匯入還原</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 危險 -->
-      <div class="ssec">
-        <div class="sslbl">危險區域</div>
-        <div class="card" style="border-color:#3a1a1a">
           <div class="setting-row">
-            <div><div class="sr-label" style="color:var(--red-text)">清除所有資料</div><div class="sr-sub">刪除本機所有紀錄（無法復原）</div></div>
-            <button id="clear-btn" style="flex-shrink:0;margin-left:8px;border-color:#3a1a1a;color:var(--red-text)"><i class="ti ti-trash"></i></button>
+            <div><div class="sr-label">匯入 JSON 還原</div><div class="sr-sub">選擇之前備份的 JSON 檔案還原</div></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <input type="file" id="import-file" accept=".json" style="font-size:11px;padding:4px;width:150px">
+              <button onclick="doImport()"><i class="ti ti-upload"></i> 還原</button>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
+  </div>
 
-  </div><!-- /pages -->
-
-  <!-- 機台詳細 sub-page -->
-  <div id="sub-md" class="sub">
+  <div id="sub-machine" class="sub">
     <div class="topbar">
-      <button class="back" onclick="closeMD()"><i class="ti ti-arrow-left"></i> 返回</button>
-      <h2 id="md-title">機台</h2>
-      <span id="md-ib"></span>
-      <button onclick="openEditMachine()" class="ghost" style="color:var(--text2)"><i class="ti ti-edit"></i></button>
+      <button class="back" onclick="closeSub('sub-machine');renderHome()"><i class="ti ti-arrow-left"></i> 返回</button>
+      <h2 id="md-title" style="margin-left:8px;flex:1">機台詳情</h2>
+      <button onclick="openEditMachine()" style="font-size:13px"><i class="ti ti-edit"></i> 修改</button>
+      <button onclick="delMachine()" style="font-size:13px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i> 刪除</button>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
-      <span id="md-tag" class="tag tc">幣表</span>
-    </div>
+    <div id="md-stats" class="sg c2"></div>
     <div class="tabs">
-      <button class="tab on" id="tab-rec" onclick="setMDT('rec')">收益紀錄</button>
-      <button class="tab" id="tab-rent" onclick="setMDT('rent')">租金</button>
+      <button class="tab on" id="t-rec" onclick="setMDTab('rec')">抄表紀錄</button>
+      <button class="tab" id="t-rent" onclick="setMDTab('rent')">租金設定</button>
     </div>
-
-    <!-- 營收紀錄 -->
-    <div id="mds-rec" class="mds">
-      <div id="md-rec-form" class="fcard">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增紀錄 (<span id="md-form-type"></span>)</div>
-        <div class="fg"><label>日期</label><input type="date" id="md-date"></div>
-        <div id="md-co" style="display:none">
-          <div class="fg2">
-            <div class="fg"><label id="md-cl">計數器（前次：0）</label><input type="number" id="md-ctr" placeholder="輸入計數器" oninput="mdCalc()"></div>
-            <div class="fg"><label>成本（元）</label><input type="number" id="md-cost" placeholder="0"></div>
-          </div>
-          <div class="cb" id="md-cb">(<span id="cp-n">0</span> - <span id="cp-p">0</span>) × 10 = <strong id="cp-r">0</strong> 元</div>
-        </div>
-        <div id="md-af" style="display:none">
-          <div class="fg2">
-            <div class="fg"><label>幣量金額（元）</label><input type="number" id="md-amt" placeholder="0"></div>
-            <div class="fg"><label>成本（元）</label><input type="number" id="md-c2" placeholder="0"></div>
-          </div>
-        </div>
-        <div class="fg2" style="margin-top:6px">
-          <div class="fg"><label>賣刮金額（元）</label><input type="number" id="md-scratch" placeholder="無則填0"></div>
-          <div class="fg"><label>備註</label><input type="text" id="md-note" placeholder="選填"></div>
-        </div>
-        <button class="prim" onclick="mdAddRec()" style="width:100%;justify-content:center;margin-top:12px">新增紀錄</button>
+    <div id="tab-rec-content">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="prim" onclick="openAddRec()" style="flex:1;justify-content:center"><i class="ti ti-plus"></i> 新增抄表紀錄</button>
       </div>
-      <div class="tw"><table><thead><tr id="md-rth"></tr></thead><tbody id="md-rtb"></tbody></table></div>
-      <div id="md-nr" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-notes" style="font-size:28px"></i>尚無紀錄</div>
+      <div class="tw"><table><thead><tr id="th-rec-head"></tr></thead><tbody id="rec-tb"></tbody></table></div>
+      <div id="no-rec" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-notes-off" style="font-size:28px"></i>尚無紀錄</div>
     </div>
-
-    <!-- 合約租金 -->
-    <div id="mds-rent" class="mds" style="display:none">
+    <div id="tab-rent-content" style="display:none">
       <div class="fcard">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增租金</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增租金區間</div>
         <div class="fg2">
           <div class="fg"><label>起始日期</label><input type="date" id="rs"></div>
           <div class="fg"><label>結束日期</label><input type="date" id="re"></div>
@@ -356,704 +308,650 @@ tr:last-child td{border-bottom:none}
           <div style="font-size:12px;color:var(--text3);margin-top:2px">停用後排到列表最下方</div>
         </div>
       </div>
-      <input type="checkbox" id="mi-cb" style="display:none">
-      <div class="tw" style="margin-top:14px"><table><thead><tr><th>合約區間</th><th>總額</th><th>方式</th><th>備註</th><th></th></tr></thead><tbody id="md-rntb"></tbody></table></div>
-      <div id="md-rn-empty" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-file-text" style="font-size:28px"></i>尚無合約</div>
+      <div class="tw"><table><thead><tr><th>起始</th><th>結束</th><th>總金額</th><th>月均</th><th>方式</th><th>備註</th><th></th></tr></thead><tbody id="rent-tb"></tbody></table></div>
+      <div id="no-rent" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-home-off" style="font-size:28px"></i>尚無租金</div>
     </div>
   </div>
 
-  <!-- 其他成本詳細 sub-page -->
-  <div id="sub-oth" class="sub">
+  <div id="sub-other" class="sub">
     <div class="topbar">
-      <button class="back" onclick="closeOth()"><i class="ti ti-arrow-left"></i> 返回</button>
-      <h2 id="oth-title" style="flex:1">明細</h2>
-      <button onclick="openEditCat()" class="ghost" style="color:var(--text2)"><i class="ti ti-edit"></i></button>
-      <button onclick="delCatCurrent()" class="ghost" style="color:var(--red-text)"><i class="ti ti-trash"></i></button>
+      <button class="back" onclick="closeSub('sub-other');renderOther()"><i class="ti ti-arrow-left"></i> 返回</button>
+      <h2 id="oth-title" style="margin-left:8px;flex:1">類別</h2>
+      <button onclick="openEditCat()" style="font-size:13px"><i class="ti ti-edit"></i> 編輯</button>
+      <button onclick="delCat()" style="font-size:13px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i> 刪除</button>
     </div>
     <div class="fcard">
-      <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增收支明細</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px">記一筆帳目</div>
       <div class="fg2">
         <div class="fg"><label>日期</label><input type="date" id="od"></div>
         <div class="fg"><label>類型</label><select id="ot"><option value="buy">支出</option><option value="sell">收入</option></select></div>
       </div>
       <div class="fg2">
         <div class="fg"><label>金額（元）</label><input type="number" id="oa" placeholder="100"></div>
-        <div class="fg"><label>備註</label><input type="text" id="on" placeholder="例：買束帶"></div>
+        <div class="fg"><label>項目說明</label><input type="text" id="on" placeholder="高麗菜、買油等"></div>
       </div>
-      <button class="prim" onclick="addOthItem()" style="width:100%;justify-content:center;margin-top:4px">新增項目</button>
+      <button class="prim" onclick="addOthItem()" style="width:100%;justify-content:center;margin-top:6px">確認新增</button>
     </div>
     <div class="tw"><table><thead><tr><th>日期</th><th>類型</th><th>金額</th><th>備註</th><th></th></tr></thead><tbody id="oth-tb"></tbody></table></div>
-    <div id="oth-nr" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-notes" style="font-size:28px"></i>尚無紀錄</div>
   </div>
 
-  <!-- Bottom Nav -->
-  <nav class="nav">
-    <button class="nb on" onclick="gotoTab(0)"><i class="ti ti-crane"></i>機台</button>
-    <button class="nb" onclick="gotoTab(1)"><i class="ti ti-calendar-stats"></i>月報</button>
-    <button class="nb" onclick="gotoTab(2)"><i class="ti ti-gift"></i>獎品</button>
-    <button class="nb" onclick="gotoTab(3)"><i class="ti ti-receipt"></i>其他</button>
-    <button class="nb" onclick="gotoTab(4)"><i class="ti ti-settings"></i>設定</button>
-  </nav>
-</div><!-- /root -->
-
-<!-- Sheet: 機台 -->
-<div id="sh-machine" class="sbg" onclick="if(event.target===this)closeSheet('sh-machine')">
-  <div class="sh">
-    <div class="shd"><span id="sh-m-title">新增機台</span><button class="ghost" onclick="closeSheet('sh-machine')"><i class="ti ti-x"></i></button></div>
-    <div class="fg"><label>機台名稱</label><input type="text" id="nm-name" placeholder="例：1號台-公仔"></div>
-    <div id="nm-type-wrap" class="fg">
-      <label>記帳模式 <span style="font-size:11px;color:var(--text3)">(建立後不可更改)</span></label>
-      <div style="display:flex;gap:10px;margin-top:8px">
-        <div id="nm-tc" onclick="selMT('coin')" style="flex:1;padding:12px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;font-size:13px">
-          <i class="ti ti-calculator" style="font-size:20px;display:block;margin-bottom:4px"></i>幣表模式<br><span style="font-size:11px;opacity:.7">用計數器算營業額</span>
-        </div>
-        <div id="nm-ta" onclick="selMT('amount')" style="flex:1;padding:12px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;font-size:13px">
-          <i class="ti ti-currency-dollar" style="font-size:20px;display:block;margin-bottom:4px"></i>幣量模式<br><span style="font-size:11px;opacity:.7">直接輸入實收金額</span>
-        </div>
-      </div>
-    </div>
-    <div class="fg"><label>初始計數器 <span style="font-size:11px;color:var(--text3)">(幣表模式需要)</span></label><input type="number" id="nm-init" placeholder="0"></div>
-    <div class="fg"><label>開始記帳日期 <span style="font-size:11px;color:var(--text3)">(選填，設定後不可選更早的日期)</span></label><input type="date" id="nm-startdate"></div>
-    <input type="hidden" id="nm-eid" value="">
-    <button class="prim" id="nm-btn" onclick="saveMachine()" style="width:100%;justify-content:center;margin-top:10px">確認新增</button>
+  <div class="nav">
+    <button class="nb on" id="b-machines" onclick="navTo('p-machines')"><i class="ti ti-crane"></i>首頁</button>
+    <button class="nb" id="b-monthly" onclick="navTo('p-monthly')"><i class="ti ti-calendar-stats"></i>月報</button>
+    <button class="nb" id="b-prizes" onclick="navTo('p-prizes')"><i class="ti ti-gift"></i>庫存</button>
+    <button class="nb" id="b-other" onclick="navTo('p-other')"><i class="ti ti-receipt"></i>其他</button>
+    <button class="nb" id="b-settings" onclick="navTo('p-settings')"><i class="ti ti-settings"></i>設定</button>
   </div>
 </div>
 
-<!-- Sheet: 類別 -->
-<div id="sh-cat" class="sbg" onclick="if(event.target===this)closeSheet('sh-cat')">
-  <div class="sh">
-    <div class="shd"><span id="sh-cat-title">新增類別</span><button class="ghost" onclick="closeSheet('sh-cat')"><i class="ti ti-x"></i></button></div>
-    <div class="fg"><label>類別名稱</label><input type="text" id="cat-n" placeholder="例：雜物、刮卡、運費"></div>
-    <input type="hidden" id="cat-edit-id" value="">
-    <button class="prim" id="cat-save-btn" onclick="saveCat()" style="width:100%;justify-content:center;margin-top:4px">新增</button>
-  </div>
+<div class="sbg" id="sheet" onclick="if(event.target===this)closeSheet()">
+  <div class="sh" id="sheet-content"></div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk",
-    authDomain: "my-gacha-app-7514f.firebaseapp.com",
-    projectId: "my-gacha-app-7514f",
-    storageBucket: "my-gacha-app-7514f.firebasestorage.app",
-    messagingSenderId: "630194612465",
-    appId: "1:630194612465:web:ee860259a9ebbb30286150"
-  };
+// 請在下方替換成你自己的真實 Firebase 配置資訊，以啟用即時自動雲端備份功能
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+let userUID = null;
 
-  let userUID = null;
+// 監聽 Google 登入同步狀態
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    userUID = user.uid;
+    document.getElementById('sync-dot').style.background = "#00c97f";
+    document.getElementById('sync-status').innerText = "雲端即時同步中";
+    document.getElementById('g-login-area').style.display = "none";
+    document.getElementById('g-user-area').style.display = "block";
+    document.getElementById('user-name').innerText = user.displayName || "Google 用戶";
+    document.getElementById('user-email').innerText = user.email;
+    document.getElementById('user-img').src = user.photoURL || "";
+    document.getElementById('btn-add-m').disabled = false;
+    await loadCloudData();
+  } else {
+    userUID = null;
+    window.DB = { machines: [], prizes: [], categories: [] };
+    document.getElementById('sync-dot').style.background = "#ff5a47";
+    document.getElementById('sync-status').innerText = "請登入 Google 帳號啟用同步";
+    document.getElementById('g-login-area').style.display = "block";
+    document.getElementById('g-user-area').style.display = "none";
+    document.getElementById('btn-add-m').disabled = true;
+    document.getElementById('machine-list').innerHTML = '<div class="empty"><i class="ti ti-lock" style="font-size:32px;display:block;margin-bottom:8px"></i>請先到「設定」頁面<br>登入 Google 帳號以讀取雲端資料</div>';
+    document.getElementById('home-stats').innerHTML = '';
+    document.getElementById('home-chart').style.display = 'none';
+  }
+});
 
-  // 監聽登入狀態
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      userUID = user.uid;
-      document.getElementById('sync-dot').style.background = "#00c97f";
-      document.getElementById('sync-status').innerText = "雲端即時同步中";
-      document.getElementById('g-login-area').style.display = "none";
-      document.getElementById('g-user-area').style.display = "block";
-      document.getElementById('user-name').innerText = user.displayName || "Google 用戶";
-      document.getElementById('user-email').innerText = user.email;
-      document.getElementById('user-img').src = user.photoURL || "";
-      document.getElementById('btn-add-m').disabled = false;
-      
-      await loadCloudData();
+window.handleGoogleLogin = function() {
+  signInWithPopup(auth, provider).catch((e) => alert("登入失敗：" + e.message));
+};
+
+window.handleGoogleLogout = function() {
+  if(confirm("確定要登出嗎？")) signOut(auth);
+};
+
+async function loadCloudData() {
+  if (!userUID) return;
+  try {
+    const docSnap = await getDoc(doc(db, "userData", userUID));
+    if (docSnap.exists()) {
+      window.DB = docSnap.data();
+      if(!window.DB.categories) window.DB.categories=[];
+      if(!window.DB.prizes) window.DB.prizes=[];
     } else {
-      userUID = null;
-      window.DB = { machines: [], prizes: [], categories: [] };
-      document.getElementById('sync-dot').style.background = "#ff5a47";
-      document.getElementById('sync-status').innerText = "請登入 Google 帳號啟用同步";
-      document.getElementById('g-login-area').style.display = "block";
-      document.getElementById('g-user-area').style.display = "none";
-      document.getElementById('btn-add-m').disabled = true;
-      
-      document.getElementById('machine-list').innerHTML = '<div class="empty"><i class="ti ti-lock" style="font-size:32px;display:block;margin-bottom:8px"></i>請先到「設定」頁面<br>登入 Google 帳號以讀取雲端資料</div>';
-      document.getElementById('home-stats').innerHTML = '';
-      document.getElementById('home-chart').style.display = 'none';
-    }
-  });
-
-  window.handleGoogleLogin = function() {
-    signInWithPopup(auth, provider).catch((e) => alert("登入失敗：" + e.message));
-  };
-
-  window.handleGoogleLogout = function() {
-    if(confirm("確定要登出嗎？")) signOut(auth);
-  };
-
-  async function loadCloudData() {
-    if (!userUID) return;
-    try {
-      const docSnap = await getDoc(doc(db, "userData", userUID));
-      if (docSnap.exists()) {
-        window.DB = docSnap.data();
-        if(!window.DB.categories) window.DB.categories=[];
-        if(!window.DB.prizes) window.DB.prizes=[];
-      } else {
-        var local = localStorage.getItem('gachaApp');
-        if (local) {
-          window.DB = JSON.parse(local);
-          await saveToCloud();
-        }
+      var local = localStorage.getItem('gachaApp');
+      if (local) {
+        window.DB = JSON.parse(local);
+        await saveToCloud();
       }
-    } catch (e) {
-      console.error(e);
     }
-    window.renderHome();
+  } catch (e) {
+    console.error(e);
   }
+  window.renderHome();
+}
 
-  window.save = async function() {
-    try { localStorage.setItem('gachaApp', JSON.stringify(window.DB)); } catch(e){}
-    await saveToCloud();
-  };
+window.save = async function() {
+  try {
+    localStorage.setItem('gachaApp', JSON.stringify(window.DB));
+  } catch(e){}
+  await saveToCloud();
+};
 
-  async function saveToCloud() {
-    if (!userUID) return;
-    try {
-      document.getElementById('sync-status').innerText = "同步中...";
-      await setDoc(doc(db, "userData", userUID), window.DB);
-      document.getElementById('sync-status').innerText = "雲端即時同步中";
-    } catch (e) {
-      document.getElementById('sync-status').innerText = "連線失敗，目前為離線狀態";
-    }
+async function saveToCloud() {
+  if (!userUID) return;
+  try {
+    document.getElementById('sync-status').innerText = "同步中...";
+    await setDoc(doc(db, "userData", userUID), window.DB);
+    document.getElementById('sync-status').innerText = "雲端即時同步中";
+  } catch(e) {
+    document.getElementById('sync-status').innerText = "雲端儲存失敗";
   }
+}
 </script>
 
 <script>
-// ── 原本所有的 UI 業務邏輯完美保留──
-var CID=null, CATID=null;
-var PM={monthly:'月繳',quarterly:'季繳',halfyear:'半年繳',yearly:'年繳',custom:'自訂'};
-var TABS=['p-machines','p-monthly','p-prizes','p-other','p-settings'];
-var curTab=0;
+window.DB = { machines: [], prizes: [], categories: [] };
+var curMId = null, curCId = null;
 
-window.DB = {machines:[],prizes:[],categories:[]};
-function save(){
-  try{ localStorage.setItem('gachaApp', JSON.stringify(DB)); }
-  catch(e){ alert('儲存失敗：'+e.message); }
-}
-function gm(){ return DB.machines.find(function(m){return m.id===CID;}); }
-function gc(){ return DB.categories.find(function(c){return c.id===CATID;}); }
-
-// ── Theme ──
-function setTheme(t){
-  document.body.classList.toggle('light', t==='light');
-  localStorage.setItem('gachaTheme', t);
-  document.getElementById('th-dark').classList.toggle('on', t==='dark');
-  document.getElementById('th-light').classList.toggle('on', t==='light');
-}
-(function(){ setTheme(localStorage.getItem('gachaTheme')||'dark'); })();
-
-// ── Nav tabs ──
-function gotoTab(idx){
-  TABS.forEach(function(id,i){
-    document.getElementById(id).classList.toggle('on', i===idx);
-  });
-  document.querySelectorAll('.nav .nb').forEach(function(b,i){
-    b.classList.toggle('on', i===idx);
-  });
-  curTab=idx;
-  if(idx===0) renderHome();
-  if(idx===1) renderMonthly();
-  if(idx===2) renderPrizes();
-  if(idx===3) renderOther();
+// 新的分頁切換控制邏輯 (解決 gotoTab 未定義之錯誤)
+function navTo(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById(pageId).classList.add('on');
+  document.getElementById('b-' + pageId.replace('p-', '')).classList.add('on');
+  closeAllSubs();
+  if (pageId === 'p-machines') renderHome();
+  if (pageId === 'p-monthly') renderMonthly();
+  if (pageId === 'p-prizes') renderPrizes();
+  if (pageId === 'p-other') renderOther();
 }
 
-function openSheet(id){ document.getElementById(id).classList.add('on'); }
-function closeSheet(id){ document.getElementById(id).classList.remove('on'); }
+function closeAllSubs() {
+  document.querySelectorAll('.sub').forEach(s => s.classList.remove('on'));
+}
+function openSub(id) { closeAllSubs(); document.getElementById(id).classList.add('on'); }
+function closeSub(id) { document.getElementById(id).classList.remove('on'); }
 
-// ── Stats ──
-function calcS(m){
-  var inc=0, cost=0, rent=0;
-  if(m.records){ m.records.forEach(function(r){ inc+=(r.income||0); cost+=(r.cost||0); }); }
-  if(m.rents){
-    m.rents.forEach(function(r){
-      var rs=new Date(r.start), re=new Date(r.end);
-      var totalDays=Math.round((re-rs)/864e5)+1;
-      if(totalDays<=0) return;
-      var macMonths=new Set((m.records||[]).map(function(rec){return rec.date.slice(0,7);}));
-      macMonths.forEach(function(ym){
-        var p=ym.split('-'), yr=parseInt(p[0]), mo=parseInt(p[1]);
-        var mS=new Date(yr,mo-1,1), mE=new Date(yr,mo,0);
-        var oS=new Date(Math.max(mS,rs)), oE=new Date(Math.min(mE,re));
-        if(oS>oE) return;
-        var d=Math.round((oE-oS)/864e5)+1;
-        rent+=Math.round((r.amount/totalDays)*d);
-      });
+function openSheet(html) {
+  document.getElementById('sheet-content').innerHTML = html;
+  document.getElementById('sheet').classList.add('on');
+}
+function closeSheet() { document.getElementById('sheet').classList.remove('on'); }
+
+function setTheme(t) {
+  document.body.className = t;
+  document.querySelectorAll('.thopt').forEach(o => o.classList.remove('on'));
+  document.getElementById('th-' + t).classList.add('on');
+  try { localStorage.setItem('gachaTheme', t); } catch(e){}
+}
+(function(){
+  var t = 'dark';
+  try { t = localStorage.getItem('gachaTheme') || 'dark'; } catch(e){}
+  setTheme(t);
+})();
+
+function gm(){ return window.DB.machines.find(m => m.id === curMId); }
+function gc(){ return window.DB.categories.find(c => c.id === curCId); }
+
+function calcS(m) {
+  var inc = 0, cost = 0, rent = 0;
+  m.records.forEach(r => { inc += r.income; cost += (r.cost || 0); });
+  if (m.rents) {
+    m.rents.forEach(rentItem => {
+      var s = new Date(rentItem.start), e = new Date(rentItem.end);
+      var mths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
+      if (mths > 0) rent += (rentItem.amount / mths) * mths; 
     });
   }
-  return {inc:inc, cost:cost, rent:rent, prof:inc-cost-rent};
+  return { inc: inc, cost: cost, rent: rent, pnr: inc - cost, p: inc - cost - rent };
 }
 
-// ── Home ──
-function renderHome(){
-  var list=document.getElementById('machine-list');
-  var empty=document.getElementById('empty-home');
-  var sts=document.getElementById('home-stats');
-  if(!DB.machines.length){ empty.style.display='block'; list.innerHTML=''; sts.innerHTML=''; document.getElementById('home-chart').style.display='none'; return; }
-  empty.style.display='none';
-  var tI=0, tC=0, tR=0;
-  DB.machines.forEach(function(m){ var s=calcS(m); tI+=s.inc; tC+=s.cost; tR+=s.rent; });
-  var tp=tI-tC-tR;
-  sts.innerHTML='<div class="st"><div class="lb">總收入</div><div class="vl">$'+tI.toLocaleString()+'</div></div>'+
-    '<div class="st"><div class="lb">總成本</div><div class="vl">$'+tC.toLocaleString()+'</div></div>'+
-    '<div class="st"><div class="lb">扣租後</div><div class="vl '+(tp>=0?'pos':'neg')+'">$'+tp.toLocaleString()+'</div></div>';
-  var active=DB.machines.filter(function(m){return !m.inactive;});
-  var inactive=DB.machines.filter(function(m){return m.inactive;});
-  list.innerHTML=active.concat(inactive).map(function(m){
-    var s=calcS(m);
-    var tTag='<span class="tag '+(m.recordType==='coin'?'tc':'ta')+'">'+(m.recordType==='coin'?'幣表':'幣量')+'</span>';
-    var iTag=m.inactive?'<span class="tag toff">退租</span>':'';
-    return '<div class="card tap" onclick="openMD('+m.id+')">'+
-      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">'+
-      '<span style="font-weight:600;font-size:15px">'+m.name+'</span>'+tTag+iTag+'</div>'+
-      '<div class="mg">'+
-      '<div class="mc"><div class="lb">收入</div><div>$'+s.inc.toLocaleString()+'</div></div>'+
-      '<div class="mc"><div class="lb">成本</div><div>$'+s.cost.toLocaleString()+'</div></div>'+
-      '<div class="mc"><div class="lb">租金</div><div>$'+s.rent.toLocaleString()+'</div></div>'+
-      '<div class="mc"><div class="lb">利潤</div><div class="'+(s.prof>=0?'pos':'neg')+'">$'+s.prof.toLocaleString()+'</div></div>'+
-      '</div></div>';
+// 渲染首頁機台列表
+function renderHome() {
+  var sts = document.getElementById('home-stats');
+  var list = document.getElementById('machine-list');
+  var empty = document.getElementById('empty-home');
+  if (!window.DB.machines || window.DB.machines.length === 0) {
+    sts.innerHTML = '';
+    list.innerHTML = '';
+    document.getElementById('home-chart').style.display = 'none';
+    if(document.getElementById('btn-add-m').disabled) {
+      empty.style.display = 'none';
+    } else {
+      empty.style.display = 'block';
+    }
+    return;
+  }
+  empty.style.display = 'none';
+  var tI = 0, tC = 0, tR = 0;
+  window.DB.machines.forEach(m => {
+    var s = calcS(m); tI += s.inc; tC += s.cost; tR += s.rent;
+  });
+  var tp = tI - tC - tR;
+  sts.innerHTML = '<div class="st"><div class="lb">總收入</div><div class="vl">$' + tI.toLocaleString() + '</div></div>' +
+                  '<div class="st"><div class="lb">總成本</div><div class="vl">$' + tC.toLocaleString() + '</div></div>' +
+                  '<div class="st"><div class="lb">扣租後</div><div class="vl ' + (tp >= 0 ? 'pos' : 'neg') + '">$' + tp.toLocaleString() + '</div></div>';
+
+  var active = window.DB.machines.filter(m => !m.inactive);
+  var inactive = window.DB.machines.filter(m => m.inactive);
+  list.innerHTML = active.concat(inactive).map(m => {
+    var s = calcS(m);
+    var tTag = m.recordType ? ('<span class="tag ' + (m.recordType === 'coin' ? 'tc' : 'ta') + '">' + (m.recordType === 'coin' ? '幣表' : '幣量') + '</span>') : '';
+    var iTag = m.inactive ? '<span class="tag toff">退租</span>' : '';
+    return '<div class="card tap" onclick="openMD(' + m.id + ')">' +
+           '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">' +
+           '<span style="font-weight:600;font-size:15px">' + m.name + '</span>' + tTag + iTag + '</div>' +
+           '<div class="mg">' +
+           '<div class="mc"><div class="lb">收入</div><div>$' + s.inc.toLocaleString() + '</div></div>' +
+           '<div class="mc"><div class="lb">成本</div><div>$' + s.cost.toLocaleString() + '</div></div>' +
+           '<div class="mc"><div class="lb">未扣租</div><div class="' + (s.pnr >= 0 ? 'pos' : 'neg') + '">$' + s.pnr.toLocaleString() + '</div></div>' +
+           '<div class="mc"><div class="lb">扣租後</div><div class="' + (s.p >= 0 ? 'pos' : 'neg') + '">$' + s.p.toLocaleString() + '</div></div>' +
+           '</div></div>';
   }).join('');
-  renderHomeChart();
+  renderChart();
 }
 
-// ── Chart ──
-function buildMonthMap(){
-  var mm={};
-  DB.machines.forEach(function(m){
-    (m.records||[]).forEach(function(r){
-      var ym=r.date.slice(0,7);
-      if(!mm[ym]) mm[ym]={};
-      if(!mm[ym][m.id]) mm[ym][m.id]={name:m.name,inc:0,cost:0,rent:0,inactive:m.inactive};
-      mm[ym][m.id].inc+=(r.income||0); mm[ym][m.id].cost+=(r.cost||0);
-    });
-    (m.rents||[]).forEach(function(rent){
-      var rs=new Date(rent.start), re=new Date(rent.end), total=Math.round((re-rs)/864e5)+1;
-      if(total<=0) return;
-      var yms=Array.from(new Set((m.records||[]).map(function(r){return r.date.slice(0,7);})));
-      yms.forEach(function(ym){
-        if(!mm[ym]||!mm[ym][m.id]) return;
-        var p=ym.split('-'), yr=parseInt(p[0]), mo=parseInt(p[1]);
-        var mS=new Date(yr,mo-1,1), mE=new Date(yr,mo,0);
-        var oS=new Date(Math.max(mS,rs)), oE=new Date(Math.min(mE,re));
-        if(oS>oE) return;
-        mm[ym][m.id].rent+=Math.round((rent.amount/total)*(Math.round((oE-oS)/864e5)+1));
-      });
+function renderChart() {
+  var cw = document.getElementById('home-chart');
+  var mm = {};
+  window.DB.machines.forEach(m => {
+    m.records.forEach(r => {
+      var ym = r.date.slice(0, 7);
+      if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
+      mm[ym].inc += r.income;
+      mm[ym].exp += (r.cost || 0);
     });
   });
-  return mm;
-}
-function renderHomeChart(){
-  var mm=buildMonthMap(), keys=Object.keys(mm).sort(), wrap=document.getElementById('home-chart'), bar=document.getElementById('bar-chart');
-  if(!keys.length){wrap.style.display='none';return;}
-  wrap.style.display='block';
-  var mx=1;
-  var data=keys.map(function(ym){
-    var inc=0,exp=0;
-    Object.keys(mm[ym]).forEach(function(id){inc+=mm[ym][id].inc;exp+=mm[ym][id].cost+mm[ym][id].rent;});
-    if(inc>mx) mx=inc; if(exp>mx) mx=exp;
-    return {lbl:ym.slice(5),inc:inc,exp:exp};
-  });
-  bar.innerHTML=data.map(function(d){
-    var hI=Math.round((d.inc/mx)*75), hE=Math.round((d.exp/mx)*75);
-    return '<div class="bg2c"><div class="bp">'+
-      '<div class="bar bi" style="height:'+hI+'px;width:12px"></div>'+
-      '<div class="bar be" style="height:'+hE+'px;width:12px"></div>'+
-      '</div><div class="bl">'+d.lbl+'月</div></div>';
+  var keys = Object.keys(mm).sort();
+  if (keys.length === 0) { cw.style.display = 'none'; return; }
+  cw.style.display = 'block';
+  var max = 0;
+  keys.forEach(k => { if (mm[k].inc > max) max = mm[k].inc; if (mm[k].exp > max) max = mm[k].exp; });
+  if (max === 0) max = 1;
+  document.getElementById('bar-chart').innerHTML = keys.map(k => {
+    var h1 = (mm[k].inc / max) * 60;
+    var h2 = (mm[k].exp / max) * 60;
+    return '<div class="bg2c"><div class="bp">' +
+           '<div class="bar bi" style="height:' + Math.max(h1, 2) + 'px;width:10px"></div>' +
+           '<div class="bar be" style="height:' + Math.max(h2, 2) + 'px;width:10px"></div>' +
+           '</div><div class="bl">' + k.slice(5) + '月</div></div>';
   }).join('');
 }
 
-// ── Machine Sheet ──
-var nmT='';
-function selMT(t){
-  nmT=t;
-  var base='flex:1;padding:12px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;font-size:13px;transition:all .15s';
-  document.getElementById('nm-tc').style.cssText=base+(t==='coin'?';border-color:var(--green);background:var(--green-dim);color:var(--green-text)':'');
-  document.getElementById('nm-ta').style.cssText=base+(t==='amount'?';border-color:var(--green);background:var(--green-dim);color:var(--green-text)':'');
+function openAddMachine() {
+  openSheet('<div class="shd"><span>新增機台</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+            '<div class="fg"><label>機台名稱</label><input type="text" id="m-name" placeholder="例：萬代1號機"></div>' +
+            '<div class="fg"><label>記帳模式</label><select id="m-type"><option value="coin">投幣數 (比對前後總幣表差額)</option><option value="amount">實收金額 (每次直接填寫收多少錢)</option></select></div>' +
+            '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="doAddMachine()"><i class="ti ti-check"></i> 確認建立</button>');
 }
-function openAddMachine(){
-  nmT='';
-  ['nm-name','nm-init','nm-startdate','nm-eid'].forEach(function(id){document.getElementById(id).value='';});
-  var base='flex:1;padding:12px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;font-size:13px';
-  document.getElementById('nm-tc').style.cssText=base;
-  document.getElementById('nm-ta').style.cssText=base;
-  document.getElementById('nm-type-wrap').style.display='block';
-  document.getElementById('sh-m-title').textContent='新增機台';
-  document.getElementById('nm-btn').textContent='確認新增';
-  openSheet('sh-machine');
+function doAddMachine() {
+  var n = document.getElementById('m-name').value.trim();
+  var t = document.getElementById('m-type').value;
+  if (!n) return;
+  var nm = { id: Date.now(), name: n, recordType: t, records: [], rents: [], inactive: false };
+  window.DB.machines.push(nm);
+  window.save(); renderHome(); closeSheet();
 }
-function openEditMachine(){
-  var m=gm(); nmT=m.recordType||'';
-  document.getElementById('nm-name').value=m.name;
-  document.getElementById('nm-init').value=(m.counterInit!=null?m.counterInit:'');
-  document.getElementById('nm-startdate').value=m.startDate||'';
-  document.getElementById('nm-eid').value=m.id;
-  if(m.recordType){ selMT(m.recordType); document.getElementById('nm-type-wrap').style.display='none'; }
-  else document.getElementById('nm-type-wrap').style.display='block';
-  document.getElementById('sh-m-title').textContent='編輯機台';
-  document.getElementById('nm-btn').textContent='儲存';
-  openSheet('sh-machine');
+
+// 開啟機台詳細儀表板
+function openMD(id) {
+  curMId = id; var m = gm();
+  document.getElementById('md-title').innerText = m.name;
+  document.getElementById('t-rec').className = 'tab on';
+  document.getElementById('t-rent').className = 'tab';
+  document.getElementById('tab-rec-content').style.display = 'block';
+  document.getElementById('tab-rent-content').style.display = 'none';
+  openSub('sub-machine'); renderMDStats(); renderMDRec();
 }
-function saveMachine(){
-  var name=document.getElementById('nm-name').value.trim();
-  var init=document.getElementById('nm-init').value;
-  var startDate=document.getElementById('nm-startdate').value;
-  var eid=document.getElementById('nm-eid').value;
-  if(!name){alert('請輸入機台名稱');return;}
-  if(!eid&&!nmT){alert('請選擇記帳模式');return;}
-  if(eid){
-    var m=DB.machines.find(function(x){return x.id===parseInt(eid);});
-    m.name=name; m.startDate=startDate||null;
-    if(init!==''&&!m.records.length) m.counterInit=parseFloat(init)||0;
+function setMDTab(t) {
+  document.getElementById('t-rec').className = 'tab' + (t === 'rec' ? ' on' : '');
+  document.getElementById('t-rent').className = 'tab' + (t === 'rent' ? ' on' : '');
+  document.getElementById('tab-rec-content').style.display = t === 'rec' ? 'block' : 'none';
+  document.getElementById('tab-rent-content').style.display = t === 'rent' ? 'block' : 'none';
+  if (t === 'rent') renderMDRent();
+}
+function renderMDStats() {
+  var s = calcS(gm());
+  document.getElementById('md-stats').innerHTML =
+    '<div class="st"><div class="lb">總營業額</div><div class="vl">$' + s.inc.toLocaleString() + '</div></div>' +
+    '<div class="st"><div class="lb">淨利(扣租)</div><div class="vl ' + (s.p >= 0 ? 'pos' : 'neg') + '">$' + s.p.toLocaleString() + '</div></div>';
+}
+
+function openEditMachine() {
+  var m = gm();
+  openSheet('<div class="shd"><span>修改機台</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+            '<div class="fg"><label>機台名稱</label><input type="text" id="me-name" value="' + m.name + '"></div>' +
+            '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="doEditMachine()">儲存修改</button>');
+}
+function doEditMachine() {
+  var n = document.getElementById('me-name').value.trim(); if (!n) return;
+  gm().name = n; document.getElementById('md-title').innerText = n;
+  window.save(); closeSheet();
+}
+function delMachine() {
+  if (confirm('確定完全刪除此機台及其所有數據嗎？不可回復！')) {
+    window.DB.machines = window.DB.machines.filter(m => m.id !== curMId);
+    window.save(); closeSub('sub-machine'); renderHome();
+  }
+}
+
+// 抄表歷史紀錄邏輯
+function renderMDRec() {
+  var m = gm(), tbody = document.getElementById('rec-tb'), h = document.getElementById('th-rec-head');
+  if (!m.records || m.records.length === 0) {
+    tbody.innerHTML = ''; document.getElementById('no-rec').style.display = 'block'; return;
+  }
+  document.getElementById('no-rec').style.display = 'none';
+  var isCoin = m.recordType === 'coin';
+  h.innerHTML = isCoin ? '<th>日期</th><th>總幣表</th><th>淨增</th><th>收入</th><th>成本</th><th></th>' : '<th>日期</th><th>收入</th><th>成本</th><th>備註</th><th></th>';
+  tbody.innerHTML = m.records.map((r, i) => {
+    return isCoin ?
+      '<tr><td>' + r.date + '</td><td>' + (r.meter || 0) + '</td><td>' + (r.diff || 0) + '</td><td>$' + r.income + '</td><td>$' + (r.cost || 0) + '</td>' +
+      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>' :
+      '<tr><td>' + r.date + '</td><td>$' + r.income + '</td><td>$' + (r.cost || 0) + '</td><td>' + (r.note || '') + '</td>' +
+      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
+  }).join('');
+}
+function openAddRec() {
+  var m = gm();
+  var isCoin = m.recordType === 'coin';
+  var formHtml = '<div class="shd"><span>新增抄表紀錄</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+                 '<div class="fg"><label>抄表日期</label><input type="date" id="rd" value="' + new Date().toISOString().slice(0,10) + '"></div>';
+  if (isCoin) {
+    formHtml += '<div class="fg"><label>本次總幣表數字</label><input type="number" id="rm" placeholder="例：5420"></div>';
   } else {
-    DB.machines.push({id:Date.now(),name:name,recordType:nmT,startDate:startDate||null,
-      counterInit:init!==''?parseFloat(init):0,records:[],rents:[],inactive:false});
+    formHtml += '<div class="fg"><label>本次實收金額（元）</label><input type="number" id="ri" placeholder="1500"></div>';
   }
-  save(); closeSheet('sh-machine'); renderHome();
+  formHtml += '<div class="fg"><label>補貨/維修等成本（元，選填）</label><input type="number" id="rc" placeholder="0"></div>' +
+              '<div class="fg"><label>備註文字（選填）</label><input type="text" id="rn" placeholder="例：清台、換馬達"></div>' +
+              '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="doAddRec()">確認送出</button>';
+  openSheet(formHtml);
 }
-
-// ── Machine Detail ──
-function openMD(id){
-  CID=id; var m=gm();
-  document.getElementById('md-title').textContent=m.name;
-  document.getElementById('md-tag').className='tag '+(m.recordType==='coin'?'tc':'ta');
-  document.getElementById('md-tag').textContent=m.recordType==='coin'?'幣表':'幣量';
-  document.getElementById('md-ib').innerHTML=m.inactive?'<span class="ib">已退租</span>':'';
-  var today=new Date().toISOString().slice(0,10);
-  var minD=m.startDate||today;
-  document.getElementById('md-date').value=today>=minD?today:minD;
-  document.getElementById('md-date').min=minD;
-  ['rs','re','ra','rn','md-ctr','md-cost','md-c2','md-amt','md-scratch','md-note'].forEach(function(i){document.getElementById(i).value='';});
-  document.getElementById('rpv-txt').textContent='';
-  document.getElementById('md-cb').style.display='none';
-  syncTg(m.inactive);
-  document.getElementById('md-rec-form').style.display=m.inactive?'none':'block';
-  setMDT('rec');
-  renderMDS(); renderMDRecs(); renderMDRent();
-  document.getElementById('sub-md').classList.add('on');
-  document.getElementById('sub-md').scrollTop=0;
-}
-function closeMD(){ document.getElementById('sub-md').classList.remove('on'); CID=null; renderHome(); }
-
-function setMDT(t){
-  document.getElementById('tab-rec').classList.toggle('on',t==='rec');
-  document.getElementById('tab-rent').classList.toggle('on',t==='rent');
-  document.getElementById('mds-rec').style.display=t==='rec'?'block':'none';
-  document.getElementById('mds-rent').style.display=t==='rent'?'block':'none';
-}
-function renderMDS(){
-  var m=gm(); if(!m) return;
-  document.getElementById('md-form-type').textContent=m.recordType==='coin'?'幣表模式':'幣量模式';
-  document.getElementById('md-co').style.display=m.recordType==='coin'?'block':'none';
-  document.getElementById('md-af').style.display=m.recordType==='amount'?'block':'none';
-  updCL();
-}
-function getLC(m){
-  var cr=(m.records||[]).filter(function(r){return r.counter!=null;}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id;});
-  return cr.length?cr[0].counter:(m.counterInit!=null?m.counterInit:0);
-}
-function updCL(){
-  var m=gm(); if(!m||m.recordType!=='coin') return;
-  var p=getLC(m);
-  document.getElementById('md-cl').textContent='計數器（前次：'+p+'）';
-  document.getElementById('cp-p').textContent=p;
-}
-function mdCalc(){
-  var m=gm(); if(!m||m.recordType!=='coin') return;
-  var cv=document.getElementById('md-ctr').value, cb=document.getElementById('md-cb');
-  if(cv===''){cb.style.display='none';return;}
-  var n=parseFloat(cv)||0, p=getLC(m);
-  document.getElementById('cp-n').textContent=n;
-  document.getElementById('cp-p').textContent=p;
-  document.getElementById('cp-r').textContent=(n-p)*10;
-  cb.style.display='block';
-}
-function mdAddRec(){
-  var m=gm(), d=document.getElementById('md-date').value;
-  if(!d){alert('請選擇日期');return;}
-  if(m.startDate&&d<m.startDate){alert('日期不可早於 '+m.startDate);return;}
-  var scratch=parseFloat(document.getElementById('md-scratch').value)||0;
-  var note=document.getElementById('md-note').value.trim();
-  var inc=0, cost=0, ctr=null;
-  if(m.recordType==='coin'){
-    var cv=document.getElementById('md-ctr').value; if(cv===''){alert('請輸入計數器');return;}
-    ctr=parseFloat(cv); cost=parseFloat(document.getElementById('md-cost').value)||0;
-    var prev=getLC(m); inc=(ctr-prev)*10;
-    if(inc<0&&!confirm('計算結果為負數（'+inc+'元），確定新增？'))return;
-    document.getElementById('md-ctr').value=''; document.getElementById('md-cost').value='';
+function doAddRec() {
+  var m = gm(), d = document.getElementById('rd').value;
+  var c = parseInt(document.getElementById('rc').value) || 0, n = document.getElementById('rn').value.trim();
+  if (!d) return;
+  var rec = { date: d, cost: c, note: n, income: 0 };
+  if (m.recordType === 'coin') {
+    var meter = parseInt(document.getElementById('rm').value) || 0;
+    var last = m.records[0] ? m.records[0].meter : meter;
+    var diff = meter - last; if (diff < 0) diff = 0;
+    rec.meter = meter; rec.diff = diff; rec.income = diff * 10;
   } else {
-    var av=document.getElementById('md-amt').value; if(!av){alert('請輸入金額');return;}
-    inc=parseFloat(av)||0; cost=parseFloat(document.getElementById('md-c2').value)||0;
-    document.getElementById('md-amt').value=''; document.getElementById('md-c2').value='';
+    rec.income = parseInt(document.getElementById('ri').value) || 0;
   }
-  document.getElementById('md-scratch').value=''; document.getElementById('md-note').value='';
-  if(!m.records) m.records=[];
-  m.records.push({id:Date.now(),date:d,income:inc+scratch,baseIncome:inc,scratch:scratch,cost:cost,counter:ctr,note:note});
-  save(); document.getElementById('md-cb').style.display='none';
-  updCL(); renderMDS(); renderMDRecs(); renderHome();
+  m.records.unshift(rec); m.records.sort((a,b) => b.date.localeCompare(a.date));
+  window.save(); renderMDStats(); renderMDRec(); closeSheet();
 }
-function renderMDRecs(){
-  var m=gm(), tbody=document.getElementById('md-rtb'), th=document.getElementById('md-rth'), nr=document.getElementById('md-nr');
-  if(!m.records||!m.records.length){tbody.innerHTML='';th.innerHTML='';nr.style.display='block';return;}
-  nr.style.display='none';
-  var sorted=[].concat(m.records).sort(function(a,b){return b.date.localeCompare(a.date)||(b.id-a.id);});
-  if(m.recordType==='coin'){
-    th.innerHTML='<th>日期</th><th>計數器</th><th>收入</th><th>成本</th><th>備註</th><th></th>';
-    tbody.innerHTML=sorted.map(function(r){
-      var sc=r.scratch?(' <small style="color:var(--gold)">(刮+$'+r.scratch+')</small>'):'';
-      return '<tr><td>'+r.date+'</td><td>'+(r.counter!=null?r.counter:'—')+'</td>'+
-        '<td style="color:var(--green-text)">$'+r.income+sc+'</td><td style="color:var(--text2)">$'+r.cost+'</td>'+
-        '<td style="color:var(--text3)">'+(r.note||'—')+'</td>'+
-        '<td class="r"><button onclick="delRec('+r.id+')" class="ghost" style="color:var(--red-text);padding:4px"><i class="ti ti-x"></i></button></td></tr>';
-    }).join('');
-  } else {
-    th.innerHTML='<th>日期</th><th>幣量</th><th>收入</th><th>成本</th><th>備註</th><th></th>';
-    tbody.innerHTML=sorted.map(function(r){
-      var sc=r.scratch?(' <small style="color:var(--gold)">(刮+$'+r.scratch+')</small>'):'';
-      return '<tr><td>'+r.date+'</td><td>$'+(r.baseIncome||r.income)+'</td>'+
-        '<td style="color:var(--green-text)">$'+r.income+sc+'</td><td style="color:var(--text2)">$'+r.cost+'</td>'+
-        '<td style="color:var(--text3)">'+(r.note||'—')+'</td>'+
-        '<td class="r"><button onclick="delRec('+r.id+')" class="ghost" style="color:var(--red-text);padding:4px"><i class="ti ti-x"></i></button></td></tr>';
-    }).join('');
+function delRec(i) {
+  if (confirm('確定刪除此紀錄？')) {
+    gm().records.splice(i, 1); window.save(); renderMDStats(); renderMDRec();
   }
-}
-function delRec(rid){
-  if(!confirm('確定刪除？'))return;
-  var m=gm(); m.records=m.records.filter(function(r){return r.id!==rid;});
-  save(); updCL(); renderMDS(); renderMDRecs(); renderHome();
 }
 
-// ── Rent ──
-function rpv(){
-  var s=document.getElementById('rs').value, e=document.getElementById('re').value, a=parseFloat(document.getElementById('ra').value)||0;
-  if(s&&e&&a&&e>=s){var d=Math.round((new Date(e)-new Date(s))/864e5)+1;document.getElementById('rpv-txt').textContent='共 '+d+' 天，月均約 $'+Math.round(a/(d/30)).toLocaleString();}
-  else document.getElementById('rpv-txt').textContent='';
-}
-document.getElementById('rs').addEventListener('input',rpv);
-document.getElementById('re').addEventListener('input',rpv);
-function mdAddRent(){
-  var s=document.getElementById('rs').value, e=document.getElementById('re').value, a=parseFloat(document.getElementById('ra').value)||0;
-  if(!s||!e){alert('請選擇起訖日期');return;}if(e<s){alert('結束不能早於起始');return;}if(!a){alert('請輸入金額');return;}
-  var d=Math.round((new Date(e)-new Date(s))/864e5)+1;
-  if(!gm().rents) gm().rents=[];
-  gm().rents.push({id:Date.now(),start:s,end:e,amount:a,monthly:Math.round(a/(d/30)),period:document.getElementById('rp').value,note:document.getElementById('rn').value.trim()});
-  save();['rs','re','ra','rn'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('rpv-txt').textContent='';
-  renderMDRent(); renderHome();
-}
-function renderMDRent(){
-  var m=gm(), tbody=document.getElementById('md-rntb'), me=document.getElementById('md-rn-empty');
-  if(!m.rents||!m.rents.length){tbody.innerHTML='';me.style.display='block';return;}
-  me.style.display='none';
-  tbody.innerHTML=m.rents.map(function(r){
-    return '<tr><td><small>'+r.start+' ~ '+r.end+'</small></td><td style="color:var(--red-text)">$'+r.amount+'</td><td>'+PM[r.period]+'</td><td style="color:var(--text3)">'+(r.note||'—')+'</td>'+
-      '<td class="r"><button onclick="delRent('+r.id+')" class="ghost" style="color:var(--red-text);padding:4px"><i class="ti ti-x"></i></button></td></tr>';
+// 租金與停用區塊
+function renderMDRent() {
+  var m = gm();
+  document.getElementById('tg-inactive').classList.toggle('on', !!m.inactive);
+  var tbody = document.getElementById('rent-tb');
+  if (!m.rents || m.rents.length === 0) {
+    tbody.innerHTML = ''; document.getElementById('no-rent').style.display = 'block'; return;
+  }
+  document.getElementById('no-rent').style.display = 'none';
+  tbody.innerHTML = m.rents.map((r, i) => {
+    var s = new Date(r.start), e = new Date(r.end);
+    var mths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
+    var avg = mths > 0 ? Math.round(r.amount / mths) : r.amount;
+    var pTxt = r.period === 'monthly' ? '月繳' : r.period === 'quarterly' ? '季繳' : r.period === 'halfyear' ? '半年繳' : r.period === 'yearly' ? '年繳' : '自訂';
+    return '<tr><td>' + r.start.slice(5) + '</td><td>' + r.end.slice(5) + '</td><td>$' + r.amount + '</td><td>$' + avg + '</td><td>' + pTxt + '</td><td>' + (r.note || '') + '</td>' +
+           '<td><button onclick="delRent(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
   }).join('');
 }
-function delRent(rid){
-  if(!confirm('確定刪除？'))return;
-  gm().rents=gm().rents.filter(function(r){return r.id!==rid;});
-  save(); renderMDRent();
+function rpv() {
+  var s = document.getElementById('rs').value, e = document.getElementById('re').value, a = parseInt(document.getElementById('ra').value) || 0;
+  if(!s || !e || !a) { document.getElementById('rpv-txt').innerText = ''; return; }
+  var d1 = new Date(s), d2 = new Date(e);
+  var m = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth()) + 1;
+  document.getElementById('rpv-txt').innerText = m > 0 ? '共涵蓋 ' + m + ' 個月，平均每個月租金：$' + Math.round(a / m) : '日期不正確';
 }
-function syncTg(v){ var box=document.getElementById('tg-inactive'); box.classList.toggle('on',!!v); document.getElementById('mi-cb').checked=!!v; }
-function toggleInactive(){
-  var m=gm(); m.inactive=!m.inactive; syncTg(m.inactive);
-  document.getElementById('md-ib').innerHTML=m.inactive?'<span class="ib">已退租</span>':'';
-  document.getElementById('md-rec-form').style.display=m.inactive?'none':'block';
-  save(); renderHome();
+function mdAddRent() {
+  var m = gm(), start = document.getElementById('rs').value, end = document.getElementById('re').value;
+  var amt = parseInt(document.getElementById('ra').value) || 0, p = document.getElementById('rp').value, note = document.getElementById('rn').value.trim();
+  if (!start || !end || !amt) return;
+  if (!m.rents) m.rents = [];
+  m.rents.push({ start: start, end: end, amount: amt, period: p, note: note });
+  window.save(); renderMDRent();
 }
-
-// ── Monthly ──
-function renderMonthly(){
-  var el=document.getElementById('monthly-content');
-  if(!DB.machines.length){el.innerHTML='<div class="empty"><i class="ti ti-crane"></i>沒有機台</div>';return;}
-  var mm=buildMonthMap(), keys=Object.keys(mm).sort().reverse();
-  if(!keys.length){el.innerHTML='<div class="empty"><i class="ti ti-calendar"></i>還沒有紀錄</div>';return;}
-  el.innerHTML=keys.map(function(ym){
-    var tI=0,tC=0,tR=0;
-    var rows=Object.keys(mm[ym]).map(function(id){
-      var s=mm[ym][id]; tI+=s.inc; tC+=s.cost; tR+=s.rent; var p=s.inc-s.cost-s.rent;
-      return '<div class="orr"><div>'+s.name+(s.inactive?'<span class="ib">退租</span>':'')+'</div><div class="'+(p>=0?'pos':'neg')+'">$'+p.toLocaleString()+'</div></div>'+
-        '<div class="osub"><span>收入: $'+s.inc+'</span><span>成本: $'+s.cost+'</span><span>租金: $'+s.rent+'</span></div>';
-    }).join('');
-    var net=tI-tC-tR;
-    return '<div class="mb"><div class="mhd" style="display:flex;justify-content:space-between;align-items:center">'+
-      '<span>'+ym.replace('-','年')+'月</span><strong class="'+(net>=0?'pos':'neg')+'">$'+net.toLocaleString()+'</strong></div>'+
-      '<div style="display:flex;gap:12px;font-size:12px;color:var(--text2);margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--border)">'+
-      '<span>收入: $'+tI+'</span><span>成本: $'+tC+'</span><span>租金: $'+tR+'</span></div>'+rows+'</div>';
-  }).join('');
+function delRent(i) {
+  if (confirm('確定刪除此合約？')) { gm().rents.splice(i, 1); window.save(); renderMDRent(); }
+}
+function toggleInactive() {
+  var m = gm(); m.inactive = !m.inactive;
+  document.getElementById('tg-inactive').classList.toggle('on', !!m.inactive);
+  window.save();
 }
 
-// ── Excel ──
-function exportExcel(){
-  if(typeof XLSX==='undefined'){alert('請稍候再試');return;}
-  var mm=buildMonthMap(), keys=Object.keys(mm).sort();
-  if(!keys.length){alert('還沒有資料');return;}
-  var wb=XLSX.utils.book_new();
-  var rows=[['月份','機台','收入','成本','租金','未扣租','扣租後']];
-  keys.forEach(function(ym){
-    var tI=0,tC=0,tR=0;
-    Object.keys(mm[ym]).forEach(function(id){var s=mm[ym][id];tI+=s.inc;tC+=s.cost;tR+=s.rent;rows.push([ym,s.name+(s.inactive?' (退租)':''),s.inc,s.cost,s.rent,s.inc-s.cost,s.inc-s.cost-s.rent]);});
-    rows.push([ym,'【月合計】',tI,tC,tR,tI-tC,tI-tC-tR]);rows.push([]);
-  });
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'月報表');
-  DB.machines.forEach(function(m){
-    var sr=[['日期',m.recordType==='coin'?'計數器':'','幣量','成本','備註']];
-    [].concat(m.records||[]).sort(function(a,b){return a.date.localeCompare(b.date);}).forEach(function(r){
-      sr.push([r.date,m.recordType==='coin'?(r.counter!=null?r.counter:''):'',r.income,r.cost||0,r.note||'']);
+// 月報表引擎
+function renderMonthly() {
+  var c = document.getElementById('monthly-content'); var data = {};
+  window.DB.machines.forEach(m => {
+    m.records.forEach(r => {
+      var ym = r.date.slice(0, 7); if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
+      data[ym].inc += r.income; data[ym].cost += (r.cost || 0);
+      if (!data[ym].details[m.name]) data[ym].details[m.name] = { inc: 0, cost: 0, rent: 0 };
+      data[ym].details[m.name].inc += r.income; data[ym].details[m.name].cost += (r.cost || 0);
     });
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sr),m.name.slice(0,30).replace(/[\[\]\*\?\/\\:]/g,'')||'機台');
-  });
-  if(DB.categories.length){
-    var cr=[['類別','日期','類型','金額','備註']];
-    DB.categories.forEach(function(cat){
-      [].concat(cat.items||[]).sort(function(a,b){return a.date.localeCompare(b.date);}).forEach(function(r){
-        cr.push([cat.name,r.date,r.type==='sell'?'收入':'支出',r.amount,r.note||'']);
+    if (m.rents) {
+      m.rents.forEach(rent => {
+        var s = new Date(rent.start), e = new Date(rent.end);
+        var mths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
+        if (mths <= 0) return; var avg = rent.amount / mths;
+        for (var i = 0; i < mths; i++) {
+          var d = new Date(s.getFullYear(), s.getMonth() + i, 1);
+          var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+          if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
+          data[ym].rent += avg;
+          if (!data[ym].details[m.name]) data[ym].details[m.name] = { inc: 0, cost: 0, rent: 0 };
+          data[ym].details[m.name].rent += avg;
+        }
       });
-    });
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cr),'其他成本');
+    }
+  });
+  var keys = Object.keys(data).sort().reverse();
+  if (keys.length === 0) { c.innerHTML = '<div class="empty"><i class="ti ti-calendar-stats"></i>尚無月份報表數據</div>'; return; }
+  c.innerHTML = keys.map(k => {
+    var o = data[k], net = o.inc - o.cost - o.rent;
+    var dHtml = Object.keys(o.details).map(mn => {
+      var det = o.details[mn], p = det.inc - det.cost - det.rent;
+      return '<div class="orr"><span>' + mn + '</span><span class="' + (p >= 0 ? 'pos' : 'neg') + '">$' + Math.round(p).toLocaleString() + '</span></div>' +
+             '<div class="osub"><span>收 $' + det.inc + ' | 成本 $' + det.cost + ' | 租 $' + Math.round(det.rent) + '</span></div>';
+    }).join('');
+    return '<div class="mb"><div class="mhd" style="display:flex;justify-content:between"><span>' + k + ' 總覽</span>' +
+           '<span class="' + (net >= 0 ? 'pos' : 'neg') + '" style="margin-left:auto">$' + Math.round(net).toLocaleString() + '</span></div>' +
+           '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">總收: $' + o.inc + ' | 總成本: $' + o.cost + ' | 總分攤租金: $' + Math.round(o.rent) + '</div>' +
+           '<div style="border-top:1px dashed var(--border);padding-top:6px">' + dHtml + '</div></div>';
+  }).join('');
+}
+
+// 獎品庫存管理
+function renderPrizes() {
+  var grid = document.getElementById('prize-grid');
+  var empty = document.getElementById('empty-prizes');
+  var stats = document.getElementById('prize-stats');
+  if (!window.DB.prizes || window.DB.prizes.length === 0) {
+    grid.innerHTML = ''; stats.innerHTML = ''; empty.style.display = 'block'; return;
   }
-  XLSX.writeFile(wb,'娃娃機記帳_'+new Date().toISOString().slice(0,10)+'.xlsx');
-}
-
-// ── Prizes ──
-function showAddPrize(){ var f=document.getElementById('prize-add-form'); f.style.display=f.style.display==='none'?'block':'none'; }
-function addPrize(){
-  var name=document.getElementById('pz-name').value.trim(), cost=parseFloat(document.getElementById('pz-cost').value)||0;
-  var qty=parseInt(document.getElementById('pz-qty').value)||1, note=document.getElementById('pz-note').value.trim();
-  if(!name){alert('請輸入名稱');return;}
-  var file=document.getElementById('pz-img').files[0];
-  var fin=function(img){ DB.prizes.push({id:Date.now(),name:name,cost:cost,qty:qty,note:note,img:img||null}); save(); document.getElementById('prize-add-form').style.display='none'; renderPrizes(); };
-  if(file){ var r=new FileReader(); r.onload=function(e){fin(e.target.result);}; r.readAsDataURL(file); } else fin(null);
-}
-function deletePrize(id){ if(!confirm('確定刪除？'))return; DB.prizes=DB.prizes.filter(function(p){return p.id!==id;}); save(); renderPrizes(); }
-function renderPrizes(){
-  var grid=document.getElementById('prize-grid'), empty=document.getElementById('empty-prizes'), sts=document.getElementById('prize-stats');
-  if(!DB.prizes.length){grid.innerHTML='';empty.style.display='block';sts.innerHTML='';return;}
-  empty.style.display='none';
-  var total=DB.prizes.reduce(function(s,p){return s+p.cost*p.qty;},0), count=DB.prizes.reduce(function(s,p){return s+p.qty;},0);
-  sts.innerHTML='<div class="st"><div class="lb">庫存件數</div><div class="vl">'+count+'</div></div><div class="st"><div class="lb">總成本</div><div class="vl">$'+total.toLocaleString()+'</div></div>';
-  grid.innerHTML=DB.prizes.map(function(p){
-    return '<div class="pc">'+
-      (p.img?'<img class="pi" src="'+p.img+'" alt="'+p.name+'">':`<div class="pph"><i class="ti ti-gift"></i></div>`)+
-      '<button class="pdel" data-pid="'+p.id+'" aria-label="刪除">✕</button>'+
-      '<div class="pinfo"><div style="font-weight:600;font-size:13px;margin-bottom:2px">'+p.name+'</div>'+
-      '<div style="font-size:12px;color:var(--text3)">$'+p.cost.toLocaleString()+' × '+p.qty+'</div>'+
-      (p.note?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+p.note+'</div>':'')+'</div></div>';
+  empty.style.display = 'none';
+  var tc = 0, tq = 0;
+  window.DB.prizes.forEach(p => { tc += (p.cost * p.qty); tq += p.qty; });
+  stats.innerHTML = '<div class="st"><div class="lb">庫存總數量</div><div class="vl">' + tq + ' 個</div></div>' +
+                    '<div class="st"><div class="lb">庫存總成本</div><div class="vl">$' + tc.toLocaleString() + '</div></div>';
+  grid.innerHTML = window.DB.prizes.map((p, i) => {
+    var imgHtml = p.img ? '<img src="' + p.img + '" class="pi">' : '<div class="pph"><i class="ti ti-gift"></i></div>';
+    return '<div class="pc">' + imgHtml + '<button class="pdel" onclick="delPrize(' + i + ')"><i class="ti ti-trash"></i></button>' +
+           '<div class="pinfo"><div style="font-weight:600;font-size:14px;margin-bottom:2px">' + p.name + '</div>' +
+           '<div style="font-size:11px;color:var(--text3)">成本：$' + p.cost + ' | 剩餘：' + p.qty + '</div>' +
+           (p.note ? '<div style="font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.note + '</div>' : '') +
+           '</div></div>';
   }).join('');
 }
-// 事件委派確保動態渲染後也能點到
-document.addEventListener('click', function(e){
-  var btn=e.target.closest('.pdel[data-pid]');
-  if(btn){ e.stopPropagation(); deletePrize(parseInt(btn.dataset.pid)); }
-});
-
-// ── Other Cost ──
-function openAddCat(){ document.getElementById('cat-n').value=''; document.getElementById('cat-edit-id').value=''; document.getElementById('sh-cat-title').textContent='新增類別'; document.getElementById('cat-save-btn').textContent='新增'; openSheet('sh-cat'); }
-function openEditCat(){ var c=gc(); document.getElementById('cat-n').value=c.name; document.getElementById('cat-edit-id').value=c.id; document.getElementById('sh-cat-title').textContent='編輯類別'; document.getElementById('cat-save-btn').textContent='儲存'; openSheet('sh-cat'); }
-function saveCat(){
-  var name=document.getElementById('cat-n').value.trim(); if(!name){alert('請輸入名稱');return;}
-  var eid=document.getElementById('cat-edit-id').value;
-  if(eid){ var cat=DB.categories.find(function(c){return c.id===parseInt(eid);}); cat.name=name; save(); closeSheet('sh-cat'); document.getElementById('oth-title').textContent=name; renderOther(); }
-  else { DB.categories.push({id:Date.now(),name:name,items:[]}); save(); closeSheet('sh-cat'); renderOther(); }
+function showAddPrize() { document.getElementById('prize-add-form').style.display = 'block'; }
+function addPrize() {
+  var name = document.getElementById('pz-name').value.trim();
+  var cost = parseInt(document.getElementById('pz-cost').value) || 0;
+  var qty = parseInt(document.getElementById('pz-qty').value) || 0;
+  var note = document.getElementById('pz-note').value.trim();
+  var file = document.getElementById('pz-img').files[0];
+  if (!name || qty <= 0) return;
+  if (file) {
+    var r = new FileReader();
+    r.onload = function(e) { doSavePrize(name, cost, qty, note, e.target.result); };
+    r.readAsDataURL(file);
+  } else {
+    doSavePrize(name, cost, qty, note, '');
+  }
 }
-function delCatCurrent(){ if(!CATID) return; var cat=gc(); if(!confirm('確定刪除「'+cat.name+'」？'))return; DB.categories=DB.categories.filter(function(c){return c.id!==CATID;}); save(); closeOth(); }
-function renderOther(){
-  var list=document.getElementById('other-list'), empty=document.getElementById('empty-other'), sumBox=document.getElementById('other-monthly-summary');
-  if(!DB.categories.length){empty.style.display='block';list.innerHTML='';sumBox.innerHTML='';return;}
-  empty.style.display='none';
-  var tB=0, tS=0;
-  DB.categories.forEach(function(c){ (c.items||[]).forEach(function(i){ if(i.type==='buy') tB+=i.amount||0; else tS+=i.amount||0; }); });
-  var tNet=tS-tB;
-  sumBox.innerHTML='<div class="st"><div class="lb">累積總支出</div><div class="vl neg">$'+tB.toLocaleString()+'</div></div>'+
-    '<div class="st"><div class="lb">累積總收入</div><div class="vl pos">$'+tS.toLocaleString()+'</div></div>'+
-    '<div class="st"><div class="lb">合計</div><div class="vl '+(tNet>=0?'pos':'neg')+'">$'+tNet.toLocaleString()+'</div></div>';
-  list.innerHTML=DB.categories.map(function(c){
-    var sB=0, sS=0; (c.items||[]).forEach(function(i){if(i.type==='buy') sB+=i.amount||0; else sS+=i.amount||0;});
-    var net=sS-sB;
-    return '<div class="card tap" onclick="openOth('+c.id+')">'+
-      '<div style="font-weight:600;font-size:15px;margin-bottom:6px">'+c.name+'</div>'+
-      '<div class="oth-grid">'+
-        '<div class="oth-c"><div class="oth-lb">收入</div><div class="pos">$'+sS.toLocaleString()+'</div></div>'+
-        '<div class="oth-c"><div class="oth-lb">支出</div><div class="neg">$'+sB.toLocaleString()+'</div></div>'+
-        '<div class="oth-c"><div class="oth-lb">合計</div><div class="'+(net>=0?'pos':'neg')+'">$'+net.toLocaleString()+'</div></div>'+
-      '</div></div>';
+function doSavePrize(n, c, q, nt, img) {
+  if(!window.DB.prizes) window.DB.prizes = [];
+  window.DB.prizes.push({ name: n, cost: c, qty: q, note: nt, img: img });
+  window.save(); renderPrizes();
+  document.getElementById('prize-add-form').style.display = 'none';
+  document.getElementById('pz-name').value = ''; document.getElementById('pz-cost').value = '';
+  document.getElementById('pz-qty').value = '1'; document.getElementById('pz-note').value = '';
+  document.getElementById('pz-img').value = '';
+}
+function delPrize(i) {
+  if (confirm('確定刪除此庫存？')) { window.DB.prizes.splice(i, 1); window.save(); renderPrizes(); }
+}
+
+// 其他雜項收支與雜項類別
+function renderOther() {
+  var list = document.getElementById('other-list'), empty = document.getElementById('empty-other'), sum = document.getElementById('other-monthly-summary');
+  if (!window.DB.categories || window.DB.categories.length === 0) {
+    list.innerHTML = ''; sum.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  var ti = 0, te = 0;
+  window.DB.categories.forEach(c => {
+    if (c.items) c.items.forEach(it => { if (it.type === 'buy') te += it.amount; else ti += it.amount; });
+  });
+  sum.innerHTML = '<div class="st"><div class="lb">其他總收入</div><div class="vl" style="color:var(--green-text)">+$' + ti + '</div></div>' +
+                  '<div class="st"><div class="lb">其他總支出</div><div class="vl" style="color:var(--red-text)">-$' + te + '</div></div>' +
+                  '<div class="st"><div class="lb">雜項差額</div><div class="vl">$' + (ti - te) + '</div></div>';
+  list.innerHTML = window.DB.categories.map(c => {
+    var iAmt = 0, eAmt = 0;
+    if (c.items) c.items.forEach(it => { if (it.type === 'buy') eAmt += it.amount; else iAmt += it.amount; });
+    return '<div class="card tap" onclick="openOth(' + c.id + ')">' +
+           '<div style="font-weight:600;font-size:15px;margin-bottom:4px">' + c.name + '</div>' +
+           '<div class="oth-grid">' +
+           '<div class="oth-c"><div class="oth-lb">總項數</div><div>' + (c.items ? c.items.length : 0) + ' 筆</div></div>' +
+           '<div class="oth-c"><div class="oth-lb">累計支出</div><div style="color:var(--red-text)">$' + eAmt + '</div></div>' +
+           '<div class="oth-c"><div class="oth-lb">累計收入</div><div style="color:var(--green-text)">$' + iAmt + '</div></div>' +
+           '</div></div>';
   }).join('');
 }
-function openOth(id){
-  CATID=id; var c=gc();
-  document.getElementById('oth-title').textContent=c.name;
-  document.getElementById('od').value=new Date().toISOString().slice(0,10);
-  document.getElementById('oa').value=''; document.getElementById('on').value='';
-  renderCatItems();
-  document.getElementById('sub-oth').classList.add('on');
-  document.getElementById('sub-oth').scrollTop=0;
+function openAddCat() {
+  openSheet('<div class="shd"><span>新增成本類別</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+            '<div class="fg"><label>類別名稱</label><input type="text" id="c-name" placeholder="例：餐飲雜支、油錢"></div>' +
+            '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="doAddCat()">確認建立</button>');
 }
-function closeOth(){ document.getElementById('sub-oth').classList.remove('on'); CATID=null; renderOther(); }
-function addOthItem(){
-  var c=gc(), d=document.getElementById('od').value, t=document.getElementById('ot').value;
-  var a=parseFloat(document.getElementById('oa').value)||0, n=document.getElementById('on').value.trim();
-  if(!d){alert('請選擇日期');return;}if(!a){alert('請輸入金額');return;}
-  if(!c.items) c.items=[];
-  c.items.push({id:Date.now(),date:d,type:t,amount:a,note:n});
-  save(); document.getElementById('oa').value=''; document.getElementById('on').value=''; renderCatItems();
+function doAddCat() {
+  var n = document.getElementById('c-name').value.trim(); if (!n) return;
+  if (!window.DB.categories) window.DB.categories = [];
+  window.DB.categories.push({ id: Date.now(), name: n, items: [] });
+  window.save(); renderOther(); closeSheet();
 }
-function renderCatItems(){
-  var c=gc(), tbody=document.getElementById('oth-tb'), nr=document.getElementById('oth-nr');
-  if(!c.items||!c.items.length){tbody.innerHTML='';nr.style.display='block';return;}
-  nr.style.display='none';
-  var sorted=[].concat(c.items).sort(function(a,b){return b.date.localeCompare(a.date);});
-  tbody.innerHTML=sorted.map(function(item){
-    return '<tr><td>'+item.date+'</td>'+
-      '<td><span class="tag '+(item.type==='sell'?'tc':'toff')+'">'+(item.type==='sell'?'收入':'支出')+'</span></td>'+
-      '<td class="'+(item.type==='sell'?'pos':'neg')+'">'+(item.type==='sell'?'+':'-')+'$'+item.amount.toLocaleString()+'</td>'+
-      '<td style="color:var(--text3)">'+(item.note||'—')+'</td>'+
-      '<td class="r"><button onclick="delOthItem('+item.id+')" class="ghost" style="color:var(--red-text);padding:4px"><i class="ti ti-x"></i></button></td></tr>';
+function openOth(id) {
+  curCId = id; var c = gc(); document.getElementById('oth-title').innerText = c.name;
+  document.getElementById('od').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('oa').value = ''; document.getElementById('on').value = '';
+  openSub('sub-other'); renderCatItems();
+}
+function openEditCat() {
+  openSheet('<div class="shd"><span>更名類別</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+            '<div class="fg"><label>名稱</label><input type="text" id="ce-name" value="' + gc().name + '"></div>' +
+            '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="doEditCat()">變更</button>');
+}
+function doEditCat() {
+  var n = document.getElementById('ce-name').value.trim(); if (!n) return;
+  gc().name = n; document.getElementById('oth-title').innerText = n;
+  window.save(); closeSheet();
+}
+function delCat() {
+  if (confirm('確定刪除此類別及其下的所有項目？')) {
+    window.DB.categories = window.DB.categories.filter(c => c.id !== curCId);
+    window.save(); closeSub('sub-other'); renderOther();
+  }
+}
+function addOthItem() {
+  var c = gc(), d = document.getElementById('od').value, t = document.getElementById('ot').value;
+  var a = parseInt(document.getElementById('oa').value) || 0, n = document.getElementById('on').value.trim();
+  if (!d || !a) return;
+  if (!c.items) c.items = [];
+  c.items.push({ date: d, type: t, amount: a, note: n });
+  window.save(); renderCatItems();
+  document.getElementById('oa').value = ''; document.getElementById('on').value = '';
+}
+function renderCatItems() {
+  var c = gc(); var tbody = document.getElementById('oth-tb');
+  if (!c.items) c.items = [];
+  tbody.innerHTML = c.items.map((item, i) => {
+    return '<tr><td>' + item.date + '</td><td>' + (item.type === 'buy' ? '支出' : '收入') + '</td><td>$' + item.amount + '</td><td>' + item.note + '</td>' +
+           '<td><button onclick="delOthItem(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
   }).join('');
 }
-function delOthItem(iid){ var c=gc(); c.items=c.items.filter(function(i){return i.id!==iid;}); save(); renderCatItems(); }
+function delOthItem(i) { gc().items.splice(i, 1); window.save(); renderCatItems(); }
 
-// ── Backup ──
-document.getElementById('export-btn').addEventListener('click', function(){
-  var blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a'); a.href=url; a.download='娃娃機備份_'+new Date().toISOString().slice(0,10)+'.json';
+// 本地備份與還原系統
+function doExport() {
+  var blob = new Blob([JSON.stringify(window.DB)], { type: 'application/json' });
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = '娃娃機備份_' + new Date().toISOString().slice(0, 10) + '.json';
   document.body.appendChild(a); a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
-});
-document.getElementById('import-btn').addEventListener('click', function(){
-  var file=document.getElementById('import-file').files[0];
-  if(!file){alert('請先選擇備份檔案');return;}
-  if(!confirm('確定還原？目前所有資料將被覆蓋。'))return;
-  var reader=new FileReader();
-  reader.onload=function(evt){
-    try{
-      var parsed=JSON.parse(evt.target.result);
-      if(!parsed||!Array.isArray(parsed.machines)) throw new Error('格式錯誤');
-      DB=parsed;
-      if(!DB.categories) DB.categories=[];
-      if(!DB.prizes) DB.prizes=[];
-      save(); renderHome(); gotoTab(0); alert('還原成功！共 '+DB.machines.length+' 台機台');
-    } catch(err){ alert('還原失敗：'+err.message); }
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
+}
+function doImport() {
+  var file = document.getElementById('import-file').files[0];
+  if (!file) { alert('請先選擇要還原的 JSON 備份檔案'); return; }
+  if (!confirm('確定要執行備份還原？目前設備上所有未同步的資料將被覆蓋。')) return;
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      var parsed = JSON.parse(evt.target.result);
+      if (!parsed || !Array.isArray(parsed.machines)) throw new Error('檔案格式不相符或結構損毀');
+      window.DB = parsed;
+      if (!window.DB.categories) window.DB.categories = [];
+      if (!window.DB.prizes) window.DB.prizes = [];
+      window.save();
+      alert('還原完成！共成功載入 ' + window.DB.machines.length + ' 台機台資料。');
+      navTo('p-machines'); // 修正：安全重導向至主頁面
+    } catch (err) {
+      alert('還原失敗：' + err.message);
+    }
   };
-  reader.onerror=function(){alert('讀取失敗，請重試');};
-  reader.readAsText(file,'UTF-8');
-});
-document.getElementById('clear-btn').addEventListener('click', function(){
-  if(!confirm('確定清除所有資料？')) return;
-  if(!confirm('再次確認：真的要清除？'))return;
-  DB={machines:[],prizes:[],categories:[]}; save(); renderHome(); gotoTab(0); alert('已清除');
-});
+  reader.onerror = function() { alert('讀取檔案時發生異常，請重試'); };
+  reader.readAsText(file, 'UTF-8');
+}
 
-// ── Init ──
-(function(){ var t=localStorage.getItem('gachaTheme')||'dark'; setTheme(t); })();
-renderHome();
+// 快速 Excel 月報表匯出邏輯
+function exportExcel() {
+  if (!window.DB.machines || window.DB.machines.length === 0) { alert('無機台資料可供匯出'); return; }
+  var rows = [];
+  rows.push(["機台名稱", "紀錄日期", "類型", "數據欄位", "金額(元)", "備註"]);
+  window.DB.machines.forEach(m => {
+    m.records.forEach(r => {
+      rows.push([m.name, r.date, m.recordType === 'coin' ? '幣表抄表' : '實收抄表', m.recordType === 'coin' ? '總表值: ' + r.meter : '實收', r.income, r.note || '']);
+      if (r.cost > 0) { rows.push([m.name, r.date, '機台成本支出', '補貨/維修等', r.cost, r.note || '']); }
+    });
+    if (m.rents) {
+      m.rents.forEach(rt => { rows.push([m.name, rt.start + '~' + rt.end, '固定租金合約', '合約總租金', rt.amount, '繳費方式: ' + rt.period + ' / ' + (rt.note || '')]); });
+    }
+  });
+  if (window.DB.categories) {
+    window.DB.categories.forEach(c => {
+      if (c.items) c.items.forEach(it => { rows.push(["【其他成本】" + c.name, it.date, it.type === 'buy' ? '雜項支出' : '雜項收入', '獨立單筆', it.amount, it.note || '']); });
+    });
+  }
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "娃娃機帳目細目");
+  XLSX.writeFile(wb, '娃娃機記帳總報表_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+}
 </script>
 </body>
 </html>
-HTMLEOF
-echo "Done: $(wc -c < /mnt/user-data/outputs/娃娃機記帳v7.html) bytes"
