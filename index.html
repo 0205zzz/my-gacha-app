@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v15</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v16</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -161,7 +161,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
       </div>
       <div id="home-stats" class="sg c3"></div>
       <div id="home-chart" class="chartw" style="display:none">
-        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">每月收支</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">每月收支（已含分攤租金）</div>
         <div class="bars" id="bar-chart"></div>
         <div style="display:flex;gap:12px;font-size:11px;color:var(--text3);margin-top:4px">
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:4px;vertical-align:middle"></span>收入</span>
@@ -496,7 +496,6 @@ function setTheme(t) {
 function gm(){ return window.DB.machines.find(m => m.id === curMId); }
 function gc(){ return window.DB.categories.find(c => c.id === curCId); }
 
-// 🛠️ 核心修改：機台租金改用「天數」精確計算與分攤
 function calcS(m) {
   var inc = 0, cost = 0, rent = 0;
   m.records.forEach(r => { inc += r.income; cost += (r.cost || 0); });
@@ -505,7 +504,7 @@ function calcS(m) {
       var s = new Date(rentItem.start + 'T00:00:00'), e = new Date(rentItem.end + 'T00:00:00');
       var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
       if (totalDays > 0) {
-        rent += rentItem.amount; // 合約總天數的所有金額全部計入總成本
+        rent += rentItem.amount;
       }
     });
   }
@@ -552,15 +551,42 @@ function renderHome() {
   renderChart();
 }
 
+// 🛠️ 核心修改：首頁圖表同步支援「依天數按比例切分租金」並加入紅色柱子統計
 function renderChart() {
   var cw = document.getElementById('home-chart'); var mm = {};
   if(!window.DB || !window.DB.machines) return;
+  
   window.DB.machines.forEach(m => {
+    // 1. 統計常規抄表收入與抄表成本
     m.records.forEach(r => {
       var ym = r.date.slice(0, 7); if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
-      mm[ym].inc += r.income; mm[ym].exp += (r.cost || 0);
+      mm[ym].inc += r.income; 
+      mm[ym].exp += (r.cost || 0);
     });
+    
+    // 2. 依天數切分租金至各自月份的支出中
+    if (m.rents) {
+      m.rents.forEach(rent => {
+        var s = new Date(rent.start + 'T00:00:00'), e = new Date(rent.end + 'T00:00:00');
+        var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        if (totalDays <= 0) return;
+        var dailyRent = rent.amount / totalDays;
+        
+        var cur = new Date(s);
+        while (cur <= e) {
+          var y = cur.getFullYear();
+          var mo = String(cur.getMonth() + 1).padStart(2, '0');
+          var ym = y + '-' + mo;
+          
+          if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
+          mm[ym].exp += dailyRent; // 核心：將每日分攤租金完美歸納進首頁圖表成本中
+          
+          cur.setDate(cur.getDate() + 1);
+        }
+      });
+    }
   });
+  
   var keys = Object.keys(mm).sort();
   if (keys.length === 0) { cw.style.display = 'none'; return; }
   cw.style.display = 'block';
@@ -570,8 +596,8 @@ function renderChart() {
   document.getElementById('bar-chart').innerHTML = keys.map(k => {
     var h1 = (mm[k].inc / max) * 60; var h2 = (mm[k].exp / max) * 60;
     return '<div class="bg2c"><div class="bp">' +
-           '<div class="bar bi" style="height:' + Math.max(h1, 2) + 'px;width:10px"></div>' +
-           '<div class="bar be" style="height:' + Math.max(h2, 2) + 'px;width:10px"></div>' +
+           '<div class="bar bi" style="height:' + Math.max(h1, 2) + 'px;width:10px" title="收入: $' + Math.round(mm[k].inc) + '"></div>' +
+           '<div class="bar be" style="height:' + Math.max(h2, 2) + 'px;width:10px" title="總成本+租金: $' + Math.round(mm[k].exp) + '"></div>' +
            '</div><div class="bl">' + k.slice(5) + '月</div></div>';
   }).join('');
 }
@@ -751,7 +777,6 @@ function renderMDRent() {
   }).join('');
 }
 
-// 🛠️ 核心修改：計算提示改用天數比例呈現
 function rpv() {
   var s = document.getElementById('rs').value, e = document.getElementById('re').value, a = parseInt(document.getElementById('ra').value) || 0;
   if(!s || !e || !a) { document.getElementById('rpv-txt').innerText = ''; return; }
@@ -784,13 +809,11 @@ function toggleInactive() {
   window.save();
 }
 
-// 🛠️ 核心修改：月報表完美支援「依天數按比例精確切分」租金
 function renderMonthly() {
   var c = document.getElementById('monthly-content'); var data = {};
   if(!window.DB || !window.DB.machines) return;
   
   window.DB.machines.forEach(m => {
-    // 1. 統計收入與常規抄表成本
     m.records.forEach(r => {
       var ym = r.date.slice(0, 7); if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
       data[ym].inc += r.income; data[ym].cost += (r.cost || 0);
@@ -798,15 +821,13 @@ function renderMonthly() {
       data[ym].details[m.name].inc += r.income; data[ym].details[m.name].cost += (r.cost || 0);
     });
     
-    // 2. 依天數切分租金至各自月份
     if (m.rents) {
       m.rents.forEach(rent => {
         var s = new Date(rent.start + 'T00:00:00'), e = new Date(rent.end + 'T00:00:00');
         var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
         if (totalDays <= 0) return;
-        var dailyRent = rent.amount / totalDays; // 算出每天多少錢
+        var dailyRent = rent.amount / totalDays;
         
-        // 跑迴圈遍歷合約中的每一天，個別塞進去所屬的月份
         var cur = new Date(s);
         while (cur <= e) {
           var y = cur.getFullYear();
