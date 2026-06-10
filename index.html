@@ -355,15 +355,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 請保持你先前的真實 Firebase 配置資訊
 const firebaseConfig = {
-    apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk",
-    authDomain: "my-gacha-app-7514f.firebaseapp.com",
-    projectId: "my-gacha-app-7514f",
-    storageBucket: "my-gacha-app-7514f.firebasestorage.app",
-    messagingSenderId: "630194612465",
-    appId: "1:630194612465:web:ee860259a9ebbb30286150"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -500,7 +500,6 @@ function calcS(m) {
   return { inc: inc, cost: cost, rent: rent, pnr: inc - cost, p: inc - cost - rent };
 }
 
-// 渲染首頁機台列表
 function renderHome() {
   var sts = document.getElementById('home-stats');
   var list = document.getElementById('machine-list');
@@ -564,7 +563,6 @@ function renderChart() {
   }).join('');
 }
 
-// 1. 新增機台介面：支援選填初始幣表
 function openAddMachine() {
   openSheet('<div class="shd"><span>新增機台</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
             '<div class="fg"><label>機台名稱</label><input type="text" id="m-name" placeholder="例：萬代1號機"></div>' +
@@ -624,7 +622,6 @@ function delMachine() {
   }
 }
 
-// 抄表紀錄渲染列表 (加入賣刮顯示)
 function renderMDRec() {
   var m = gm(), tbody = document.getElementById('rec-tb'), h = document.getElementById('th-rec-head');
   if (!m.records || m.records.length === 0) {
@@ -645,12 +642,9 @@ function renderMDRec() {
   }).join('');
 }
 
-// 1 & 2 & 3. 新增紀錄：自動抓取前次數據、補回賣刮與備註
 function openAddRec() {
   var m = gm();
   var isCoin = m.recordType === 'coin';
-  
-  // 計算前次數字提示
   var lastMeterHint = "";
   if (isCoin) {
     var lastMeter = (m.records && m.records[0]) ? m.records[0].meter : (m.initialMeter || 0);
@@ -665,7 +659,6 @@ function openAddRec() {
     formHtml += '<div class="fg"><label>本次實收金額（元）</label><input type="number" id="ri" placeholder="請輸入本次機台內收到的現金"></div>';
   }
   
-  // 插入賣刮、成本與備註欄位
   formHtml += '<div class="fg"><label>賣刮 / 買洞金額（元，選填）</label><input type="number" id="rs_scratch" placeholder="直接計入本次總收入" value="0"></div>' +
               '<div class="fg"><label>補貨/維修等成本（元，選填）</label><input type="number" id="rc" placeholder="0"></div>' +
               '<div class="fg"><label>備註文字（選填）</label><input type="text" id="rn" placeholder="例：誰買刮、清台、換馬達"></div>' +
@@ -687,26 +680,52 @@ function doAddRec() {
     var last = (m.records && m.records[0]) ? m.records[0].meter : (m.initialMeter || 0);
     var diff = meter - last; if (diff < 0) diff = 0;
     rec.meter = meter; rec.diff = diff;
-    // 總收入 = (幣表差額 * 10) + 賣刮金額
     rec.income = (diff * 10) + scratch;
   } else {
     var amt = parseInt(document.getElementById('ri').value) || 0;
     rec.amount = amt;
-    // 總收入 = 實收 + 賣刮金額
     rec.income = amt + scratch;
   }
   
-  m.records.unshift(rec); m.records.sort((a,b) => b.date.localeCompare(a.date));
+  m.records.unshift(rec);
+  // 【升級：防呆排序】不管是先打後打，一律依日期從新到舊排序
+  m.records.sort((a,b) => b.date.localeCompare(a.date));
+  
+  // 排序後，如果是幣表模式，需重新由舊到新計算正確的 diff (差額) 與 income
+  if (m.recordType === 'coin') {
+    var currentBase = m.initialMeter || 0;
+    // 從最舊的紀錄開始往新紀錄算
+    for(var i = m.records.length - 1; i >= 0; i--) {
+      var dff = m.records[i].meter - currentBase;
+      if (dff < 0) dff = 0;
+      m.records[i].diff = dff;
+      m.records[i].income = (dff * 10) + (m.records[i].scratch || 0);
+      currentBase = m.records[i].meter;
+    }
+  }
+
   window.save(); renderMDStats(); renderMDRec(); closeSheet();
 }
 
 function delRec(i) {
   if (confirm('確定刪除此紀錄？')) {
-    gm().records.splice(i, 1); window.save(); renderMDStats(); renderMDRec();
+    var m = gm();
+    m.records.splice(i, 1);
+    // 刪除後同樣需要重新計算幣表差額
+    if (m.recordType === 'coin') {
+      var currentBase = m.initialMeter || 0;
+      for(var j = m.records.length - 1; j >= 0; j--) {
+        var dff = m.records[j].meter - currentBase;
+        if (dff < 0) dff = 0;
+        m.records[j].diff = dff;
+        m.records[j].income = (dff * 10) + (m.records[j].scratch || 0);
+        currentBase = m.records[j].meter;
+      }
+    }
+    window.save(); renderMDStats(); renderMDRec();
   }
 }
 
-// 租金與停用區塊
 function renderMDRent() {
   var m = gm(); document.getElementById('tg-inactive').classList.toggle('on', !!m.inactive);
   var tbody = document.getElementById('rent-tb');
@@ -736,6 +755,8 @@ function mdAddRent() {
   if (!start || !end || !amt) return;
   if (!m.rents) m.rents = [];
   m.rents.push({ start: start, end: end, amount: amt, period: p, note: note });
+  // 【升級：合約日期排序】由新到舊
+  m.rents.sort((a,b) => b.start.localeCompare(a.start));
   window.save(); renderMDRent();
 }
 function delRent(i) {
@@ -747,7 +768,6 @@ function toggleInactive() {
   window.save();
 }
 
-// 月報表
 function renderMonthly() {
   var c = document.getElementById('monthly-content'); var data = {};
   window.DB.machines.forEach(m => {
@@ -789,7 +809,6 @@ function renderMonthly() {
   }).join('');
 }
 
-// 獎品庫存管理
 function renderPrizes() {
   var grid = document.getElementById('prize-grid'); var empty = document.getElementById('empty-prizes'); var stats = document.getElementById('prize-stats');
   if (!window.DB.prizes || window.DB.prizes.length === 0) {
@@ -835,7 +854,6 @@ function delPrize(i) {
   if (confirm('確定刪除此庫存？')) { window.DB.prizes.splice(i, 1); window.save(); renderPrizes(); }
 }
 
-// 其他雜項收支
 function renderOther() {
   var list = document.getElementById('other-list'), empty = document.getElementById('empty-other'), sum = document.getElementById('other-monthly-summary');
   if (!window.DB.categories || window.DB.categories.length === 0) {
@@ -849,7 +867,11 @@ function renderOther() {
   sum.innerHTML = '<div class="st"><div class="lb">其他總收入</div><div class="vl" style="color:var(--green-text)">+$' + ti + '</div></div>' +
                   '<div class="st"><div class="lb">其他總支出</div><div class="vl" style="color:var(--red-text)">-$' + te + '</div></div>' +
                   '<div class="st"><div class="lb">雜項差額</div><div class="vl">$' + (ti - te) + '</div></div>';
-  list.innerHTML = window.DB.categories.map(c => {
+  
+  // 【升級：類別排序】新建立的類別會被放到最上方
+  var sortedCats = [...window.DB.categories].reverse();
+  
+  list.innerHTML = sortedCats.map(c => {
     var iAmt = 0, eAmt = 0; if (c.items) c.items.forEach(it => { if (it.type === 'buy') eAmt += it.amount; else iAmt += it.amount; });
     return '<div class="card tap" onclick="openOth(' + c.id + ')">' +
            '<div style="font-weight:600;font-size:15px;margin-bottom:4px">' + c.name + '</div>' +
@@ -897,7 +919,12 @@ function addOthItem() {
   var c = gc(), d = document.getElementById('od').value, t = document.getElementById('ot').value;
   var a = parseInt(document.getElementById('oa').value) || 0, n = document.getElementById('on').value.trim();
   if (!d || !a) return;
-  if (!c.items) c.items = []; c.items.push({ date: d, type: t, amount: a, note: n });
+  if (!c.items) c.items = [];
+  c.items.push({ date: d, type: t, amount: a, note: n });
+  
+  // 【升級：防呆排序】其他成本細目：不論輸入順序，一律依日期從新到舊排序
+  c.items.sort((a,b) => b.date.localeCompare(a.date));
+  
   window.save(); renderCatItems();
   document.getElementById('oa').value = ''; document.getElementById('on').value = '';
 }
@@ -910,7 +937,6 @@ function renderCatItems() {
 }
 function delOthItem(i) { gc().items.splice(i, 1); window.save(); renderCatItems(); }
 
-// 本地手動備份
 function doExport() {
   var blob = new Blob([JSON.stringify(window.DB)], { type: 'application/json' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -938,7 +964,6 @@ function doImport() {
   reader.readAsText(file, 'UTF-8');
 }
 
-// 匯出 Excel
 function exportExcel() {
   if (!window.DB.machines || window.DB.machines.length === 0) { alert('無機台資料可供匯出'); return; }
   var rows = [];
