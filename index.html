@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v14</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v15</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -67,7 +67,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 .c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
-.st .vl覆蓋{font-size:16px;font-weight:600}
+.st .vl{font-size:16px;font-weight:600}
 .pos{color:var(--green-text)}.neg{color:var(--red-text)}
 
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:500}
@@ -200,7 +200,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
         </div>
       </div>
       <div class="pg" id="prize-grid"></div>
-      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒有擺放庫存</div>
+      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還擺放庫存</div>
     </div>
 
     <div id="p-other" class="page">
@@ -300,7 +300,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
           <div class="fg"><label>結束日期</label><input type="date" id="re"></div>
         </div>
         <div class="fg2">
-          <div class="fg"><label>總金額（元）</label><input type="number" id="ra" placeholder="9000" oninput="rpv()"></div>
+          <div class="fg"><label>總金額（元）</label><input type="number" id="ra" placeholder="5000" oninput="rpv()"></div>
           <div class="fg"><label>繳費方式</label>
             <select id="rp"><option value="monthly">月繳</option><option value="quarterly">季繳</option><option value="halfyear">半年繳</option><option value="yearly">年繳</option><option value="custom">自訂</option></select>
           </div>
@@ -316,7 +316,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
           <div style="font-size:12px;color:var(--text3);margin-top:2px">停用後排到列表最下方</div>
         </div>
       </div>
-      <div class="tw"><table><thead><tr><th>起始</th><th>結束</th><th>總金額</th><th>月均</th><th>方式</th><th>備註</th><th></th></tr></thead><tbody id="rent-tb"></tbody></table></div>
+      <div class="tw"><table><thead><tr><th>起始</th><th>結束</th><th>總金額</th><th>天數</th><th>方式</th><th>備註</th><th></th></tr></thead><tbody id="rent-tb"></tbody></table></div>
       <div id="no-rent" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-home-off" style="font-size:28px"></i>尚無租金</div>
     </div>
   </div>
@@ -362,13 +362,13 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChang
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk",
-    authDomain: "my-gacha-app-7514f.firebaseapp.com",
-    projectId: "my-gacha-app-7514f",
-    storageBucket: "my-gacha-app-7514f.firebasestorage.app",
-    messagingSenderId: "630194612465",
-    appId: "1:630194612465:web:ee860259a9ebbb30286150"
-  };
+  apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk4",
+  authDomain: "my-gacha-app-7514f.firebaseapp.com",
+  projectId: "my-gacha-app-7514f",
+  storageBucket: "my-gacha-app-7514f.firebasestorage.app",
+  messagingSenderId: "630194612465",
+  appId: "1:630194612465:web:ee860259a9ebbb30286150"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -496,14 +496,17 @@ function setTheme(t) {
 function gm(){ return window.DB.machines.find(m => m.id === curMId); }
 function gc(){ return window.DB.categories.find(c => c.id === curCId); }
 
+// 🛠️ 核心修改：機台租金改用「天數」精確計算與分攤
 function calcS(m) {
   var inc = 0, cost = 0, rent = 0;
   m.records.forEach(r => { inc += r.income; cost += (r.cost || 0); });
   if (m.rents) {
     m.rents.forEach(rentItem => {
-      var s = new Date(rentItem.start), e = new Date(rentItem.end);
-      var mths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
-      if (mths > 0) rent += (rentItem.amount / mths) * mths; 
+      var s = new Date(rentItem.start + 'T00:00:00'), e = new Date(rentItem.end + 'T00:00:00');
+      var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+      if (totalDays > 0) {
+        rent += rentItem.amount; // 合約總天數的所有金額全部計入總成本
+      }
     });
   }
   return { inc: inc, cost: cost, rent: rent, pnr: inc - cost, p: inc - cost - rent };
@@ -740,21 +743,29 @@ function renderMDRent() {
   }
   document.getElementById('no-rent').style.display = 'none';
   tbody.innerHTML = m.rents.map((r, i) => {
-    var s = new Date(r.start), e = new Date(r.end);
-    var mths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
-    var avg = mths > 0 ? Math.round(r.amount / mths) : r.amount;
+    var s = new Date(r.start + 'T00:00:00'), e = new Date(r.end + 'T00:00:00');
+    var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
     var pTxt = r.period === 'monthly' ? '月繳' : r.period === 'quarterly' ? '季繳' : r.period === 'halfyear' ? '半年繳' : r.period === 'yearly' ? '年繳' : '自訂';
-    return '<tr><td>' + r.start.slice(5) + '</td><td>' + r.end.slice(5) + '</td><td>$' + r.amount + '</td><td>$' + avg + '</td><td>' + pTxt + '</td><td>' + (r.note || '') + '</td>' +
+    return '<tr><td>' + r.start.slice(5) + '</td><td>' + r.end.slice(5) + '</td><td>$' + r.amount + '</td><td>' + totalDays + ' 天</td><td>' + pTxt + '</td><td>' + (r.note || '') + '</td>' +
            '<td><button onclick="delRent(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
   }).join('');
 }
+
+// 🛠️ 核心修改：計算提示改用天數比例呈現
 function rpv() {
   var s = document.getElementById('rs').value, e = document.getElementById('re').value, a = parseInt(document.getElementById('ra').value) || 0;
   if(!s || !e || !a) { document.getElementById('rpv-txt').innerText = ''; return; }
-  var d1 = new Date(s), d2 = new Date(e);
-  var m = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth()) + 1;
-  document.getElementById('rpv-txt').innerText = m > 0 ? '共涵蓋 ' + m + ' 個月，平均每個月租金：$' + Math.round(a / m) : '日期不正確';
+  var d1 = new Date(s + 'T00:00:00'), d2 = new Date(e + 'T00:00:00');
+  var totalDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+  if (totalDays > 0) {
+    var daily = a / totalDays;
+    var monthlyEquivalent = Math.round(daily * 30);
+    document.getElementById('rpv-txt').innerText = '共涵蓋 ' + totalDays + ' 天，平均每個月 (以30天計) 租金：$' + monthlyEquivalent;
+  } else {
+    document.getElementById('rpv-txt').innerText = '日期不正確';
+  }
 }
+
 function mdAddRent() {
   var m = gm(), start = document.getElementById('rs').value, end = document.getElementById('re').value;
   var amt = parseInt(document.getElementById('ra').value) || 0, p = document.getElementById('rp').value, note = document.getElementById('rn').value.trim();
@@ -773,32 +784,47 @@ function toggleInactive() {
   window.save();
 }
 
+// 🛠️ 核心修改：月報表完美支援「依天數按比例精確切分」租金
 function renderMonthly() {
   var c = document.getElementById('monthly-content'); var data = {};
   if(!window.DB || !window.DB.machines) return;
+  
   window.DB.machines.forEach(m => {
+    // 1. 統計收入與常規抄表成本
     m.records.forEach(r => {
       var ym = r.date.slice(0, 7); if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
       data[ym].inc += r.income; data[ym].cost += (r.cost || 0);
       if (!data[ym].details[m.name]) data[ym].details[m.name] = { inc: 0, cost: 0, rent: 0 };
       data[ym].details[m.name].inc += r.income; data[ym].details[m.name].cost += (r.cost || 0);
     });
+    
+    // 2. 依天數切分租金至各自月份
     if (m.rents) {
       m.rents.forEach(rent => {
-        var s = new Date(rent.start), e = new Date(rent.end);
-        var mths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1;
-        if (mths <= 0) return; var avg = rent.amount / mths;
-        for (var i = 0; i < mths; i++) {
-          var d = new Date(s.getFullYear(), s.getMonth() + i, 1);
-          var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        var s = new Date(rent.start + 'T00:00:00'), e = new Date(rent.end + 'T00:00:00');
+        var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        if (totalDays <= 0) return;
+        var dailyRent = rent.amount / totalDays; // 算出每天多少錢
+        
+        // 跑迴圈遍歷合約中的每一天，個別塞進去所屬的月份
+        var cur = new Date(s);
+        while (cur <= e) {
+          var y = cur.getFullYear();
+          var mo = String(cur.getMonth() + 1).padStart(2, '0');
+          var ym = y + '-' + mo;
+          
           if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
-          data[ym].rent += avg;
+          data[ym].rent += dailyRent;
+          
           if (!data[ym].details[m.name]) data[ym].details[m.name] = { inc: 0, cost: 0, rent: 0 };
-          data[ym].details[m.name].rent += avg;
+          data[ym].details[m.name].rent += dailyRent;
+          
+          cur.setDate(cur.getDate() + 1);
         }
       });
     }
   });
+  
   var keys = Object.keys(data).sort().reverse();
   if (keys.length === 0) { c.innerHTML = '<div class="empty"><i class="ti ti-calendar-stats"></i>尚無月份報表數據</div>'; return; }
   c.innerHTML = keys.map(k => {
@@ -806,11 +832,11 @@ function renderMonthly() {
     var dHtml = Object.keys(o.details).map(mn => {
       var det = o.details[mn], p = det.inc - det.cost - det.rent;
       return '<div class="orr"><span>' + mn + '</span><span class="' + (p >= 0 ? 'pos' : 'neg') + '">$' + Math.round(p).toLocaleString() + '</span></div>' +
-             '<div class="osub"><span>收 $' + det.inc + ' | 成本 $' + det.cost + ' | 租 $' + Math.round(det.rent) + '</span></div>';
+             '<div class="osub"><span>收 $' + det.inc + ' | 成本 $' + det.cost + ' | 租 $' + Math.round(det.rent).toLocaleString() + '</span></div>';
     }).join('');
     return '<div class="mb"><div class="mhd" style="display:flex;justify-content:between"><span>' + k + ' 總覽</span>' +
            '<span class="' + (net >= 0 ? 'pos' : 'neg') + '" style="margin-left:auto">$' + Math.round(net).toLocaleString() + '</span></div>' +
-           '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">總收: $' + o.inc + ' | 總成本: $' + o.cost + ' | 總分攤租金: $' + Math.round(o.rent) + '</div>' +
+           '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">總收: $' + o.inc + ' | 總成本: $' + o.cost + ' | 總分攤租金: $' + Math.round(o.rent).toLocaleString() + '</div>' +
            '<div style="border-top:1px dashed var(--border);padding-top:6px">' + dHtml + '</div></div>';
   }).join('');
 }
@@ -1046,7 +1072,6 @@ function doImport() {
   reader.readAsText(file, 'UTF-8');
 }
 
-// 🛠️ 核心修改：一鍵清空刪除資料函數（具備大寫 DELETE 安全防護鎖）
 async function clearAllData() {
   var check1 = confirm("⚠️ 警告！這將會完全抹除所有機台、抄表紀錄、租金、獎品庫存及其他成本資料。\n雲端與本地都會被同步清空！不可回復！\n\n建議您先點選「匯出 JSON 備份」下載備份檔。\n\n您確定要繼續清空嗎？");
   if (!check1) return;
@@ -1057,12 +1082,8 @@ async function clearAllData() {
     return;
   }
   
-  // 重置為初始乾淨結構
   window.DB = { machines: [], prizes: [], categories: [] };
-  
-  // 寫入本地與雲端
   await window.save();
-  
   alert("✨ 所有資料已成功抹除清空！應用程式已恢復為乾淨的初始狀態。");
   navTo('p-machines');
 }
