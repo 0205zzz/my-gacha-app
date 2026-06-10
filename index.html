@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v13</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v14</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -145,7 +145,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 .g-user-box{display:flex;align-items:center;gap:12px;margin-top:10px}
 .g-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg4)}
 .g-info{flex:1;font-size:13px;line-height:1.4}
-.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px}
 .setting-row:last-child{border-bottom:none}
 .sr-label{font-size:14px;font-weight:500}
 .sr-sub{font-size:11px;color:var(--text3);margin-top:2px}
@@ -250,18 +250,22 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
       </div>
 
       <div class="ssec">
-        <div class="sslbl">本地手動備份 / 還原</div>
+        <div class="sslbl">數據管理</div>
         <div class="card">
           <div class="setting-row">
             <div><div class="sr-label">匯出 JSON 備份</div><div class="sr-sub">下載本地文字檔備份</div></div>
             <button class="prim" onclick="doExport()"><i class="ti ti-download"></i> 匯出</button>
           </div>
           <div class="setting-row">
-            <div><div class="sr-label">匯入 JSON 還原</div><div class="sr-sub">選擇之前備份的 JSON 檔案還原</div></div>
+            <div><div class="sr-label">匯入 JSON 還原</div><div class="sr-sub">選擇之前的備份檔案還原</div></div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
               <input type="file" id="import-file" accept=".json" style="font-size:11px;padding:4px;width:150px">
               <button onclick="doImport()"><i class="ti ti-upload"></i> 還原</button>
             </div>
+          </div>
+          <div class="setting-row" style="border-top:1px dashed var(--border); margin-top:10px; padding-top:14px">
+            <div><div class="sr-label" style="color:var(--red-text)">清空所有資料</div><div class="sr-sub">清空雲端與本地全部記帳、機台與庫存</div></div>
+            <button onclick="clearAllData()" style="border-color:var(--red); color:#fff; background:var(--red)"><i class="ti ti-trash"></i> 一鍵刪除</button>
           </div>
         </div>
       </div>
@@ -365,6 +369,7 @@ const firebaseConfig = {
     messagingSenderId: "630194612465",
     appId: "1:630194612465:web:ee860259a9ebbb30286150"
   };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -862,7 +867,6 @@ function cancelPrizeForm() {
   document.getElementById('prize-add-form').style.display = 'none';
 }
 
-// 🛠️ 核心修改：新增前端圖片自動壓縮函數
 function compressImage(file, maxWidth, maxHeight, quality, callback) {
   var reader = new FileReader();
   reader.onload = function(e) {
@@ -871,25 +875,14 @@ function compressImage(file, maxWidth, maxHeight, quality, callback) {
       var canvas = document.createElement('canvas');
       var width = img.width;
       var height = img.height;
-
       if (width > height) {
-        if (width > maxWidth) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        }
+        if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
       } else {
-        if (height > maxHeight) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
+        if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
       }
-
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width; canvas.height = height;
       var ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
-      
-      // 壓縮輸出為 JPEG
       var base64 = canvas.toDataURL('image/jpeg', quality);
       callback(base64);
     };
@@ -904,7 +897,6 @@ async function savePrize() {
   var qty = parseInt(document.getElementById('pz-qty').value) || 0;
   var note = document.getElementById('pz-note').value.trim();
   var editIdx = parseInt(document.getElementById('pz-edit-index').value);
-  
   if (!name || qty < 0) return;
 
   document.getElementById('pz-btn-submit').disabled = true;
@@ -922,7 +914,6 @@ async function savePrize() {
   } else {
     var file = document.getElementById('pz-img').files[0];
     if (file) {
-      // 🛠️ 核心修改：寬高限 400px，畫質 0.6，使圖片控制在 20KB 左右
       compressImage(file, 400, 400, 0.6, async function(compressedBase64) {
         await doSavePrize(name, cost, qty, note, compressedBase64);
         document.getElementById('pz-btn-submit').disabled = false;
@@ -1053,6 +1044,27 @@ function doImport() {
     } catch (err) { alert('還原失敗：' + err.message); }
   };
   reader.readAsText(file, 'UTF-8');
+}
+
+// 🛠️ 核心修改：一鍵清空刪除資料函數（具備大寫 DELETE 安全防護鎖）
+async function clearAllData() {
+  var check1 = confirm("⚠️ 警告！這將會完全抹除所有機台、抄表紀錄、租金、獎品庫存及其他成本資料。\n雲端與本地都會被同步清空！不可回復！\n\n建議您先點選「匯出 JSON 備份」下載備份檔。\n\n您確定要繼續清空嗎？");
+  if (!check1) return;
+  
+  var inputLock = prompt("🚨 安全防護確認鎖 🚨\n為避免誤觸，請在下方輸入大寫文字「DELETE」來確認一鍵清空：");
+  if (inputLock !== "DELETE") {
+    alert("驗證文字輸入不正確，取消清空操作。");
+    return;
+  }
+  
+  // 重置為初始乾淨結構
+  window.DB = { machines: [], prizes: [], categories: [] };
+  
+  // 寫入本地與雲端
+  await window.save();
+  
+  alert("✨ 所有資料已成功抹除清空！應用程式已恢復為乾淨的初始狀態。");
+  navTo('p-machines');
 }
 
 function exportExcel() {
