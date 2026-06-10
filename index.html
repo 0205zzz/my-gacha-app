@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v11</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v12</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -106,7 +106,6 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 .pc {background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden}
 .pi {width:100%;height:110px;object-fit:cover;display:block}
 .pph{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text3);font-size:32px}
-.pinfo{padding:8px 10px 10px}
 .pdel{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
 .pdel:active{background:var(--red)}
 .pedit{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:14px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
@@ -201,7 +200,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
         </div>
       </div>
       <div class="pg" id="prize-grid"></div>
-      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒有擺放庫存</div>
+      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還擺放庫存</div>
     </div>
 
     <div id="p-other" class="page">
@@ -413,6 +412,7 @@ async function loadCloudData() {
     const docSnap = await getDoc(doc(db, "userData", userUID));
     if (docSnap.exists()) {
       window.DB = docSnap.data();
+      if(!window.DB.machines) window.DB.machines=[];
       if(!window.DB.categories) window.DB.categories=[];
       if(!window.DB.prizes) window.DB.prizes=[];
     } else {
@@ -448,7 +448,10 @@ async function saveToCloud() {
 </script>
 
 <script>
-window.DB = { machines: [], prizes: [], categories: [] };
+// 🛠️ 核心防護：如果物件尚未初始化才建立，防止重複覆蓋 Firebase 抓下來的資料
+if (!window.DB) {
+  window.DB = { machines: [], prizes: [], categories: [] };
+}
 var curMId = null, curCId = null;
 
 function navTo(pageId) {
@@ -507,7 +510,7 @@ function renderHome() {
   var sts = document.getElementById('home-stats');
   var list = document.getElementById('machine-list');
   var empty = document.getElementById('empty-home');
-  if (!window.DB.machines || window.DB.machines.length === 0) {
+  if (!window.DB || !window.DB.machines || window.DB.machines.length === 0) {
     sts.innerHTML = ''; list.innerHTML = '';
     document.getElementById('home-chart').style.display = 'none';
     if(document.getElementById('btn-add-m').disabled) empty.style.display = 'none';
@@ -545,6 +548,7 @@ function renderHome() {
 
 function renderChart() {
   var cw = document.getElementById('home-chart'); var mm = {};
+  if(!window.DB || !window.DB.machines) return;
   window.DB.machines.forEach(m => {
     m.records.forEach(r => {
       var ym = r.date.slice(0, 7); if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
@@ -768,6 +772,7 @@ function toggleInactive() {
 
 function renderMonthly() {
   var c = document.getElementById('monthly-content'); var data = {};
+  if(!window.DB || !window.DB.machines) return;
   window.DB.machines.forEach(m => {
     m.records.forEach(r => {
       var ym = r.date.slice(0, 7); if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
@@ -809,7 +814,7 @@ function renderMonthly() {
 
 function renderPrizes() {
   var grid = document.getElementById('prize-grid'); var empty = document.getElementById('empty-prizes'); var stats = document.getElementById('prize-stats');
-  if (!window.DB.prizes || window.DB.prizes.length === 0) {
+  if (!window.DB || !window.DB.prizes || window.DB.prizes.length === 0) {
     grid.innerHTML = ''; stats.innerHTML = ''; empty.style.display = 'block'; return;
   }
   empty.style.display = 'none';
@@ -859,7 +864,6 @@ function cancelPrizeForm() {
   document.getElementById('prize-add-form').style.display = 'none';
 }
 
-// 🛠️ 核心修復：使用 async 確保資料庫有確實同步完才渲染、關視窗
 async function savePrize() {
   var name = document.getElementById('pz-name').value.trim();
   var cost = parseInt(document.getElementById('pz-cost').value) || 0;
@@ -915,7 +919,7 @@ async function delPrize(i) {
 
 function renderOther() {
   var list = document.getElementById('other-list'), empty = document.getElementById('empty-other'), sum = document.getElementById('other-monthly-summary');
-  if (!window.DB.categories || window.DB.categories.length === 0) {
+  if (!window.DB || !window.DB.categories || window.DB.categories.length === 0) {
     list.innerHTML = ''; sum.innerHTML = ''; empty.style.display = 'block'; return;
   }
   empty.style.display = 'none';
@@ -1020,7 +1024,7 @@ function doImport() {
 }
 
 function exportExcel() {
-  if (!window.DB.machines || window.DB.machines.length === 0) { alert('無機台資料可供匯出'); return; }
+  if (!window.DB || !window.DB.machines || window.DB.machines.length === 0) { alert('無機台資料可供匯出'); return; }
   var rows = [];
   rows.push(["機台名稱", "紀錄日期", "類型", "數據欄位", "賣刮金額", "總收入(元)", "成本(元)", "備註"]);
   window.DB.machines.forEach(m => {
