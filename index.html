@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v12</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v13</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -67,7 +67,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 .c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
-.st .vl{font-size:16px;font-weight:600}
+.st .vl覆蓋{font-size:16px;font-weight:600}
 .pos{color:var(--green-text)}.neg{color:var(--red-text)}
 
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:500}
@@ -200,7 +200,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
         </div>
       </div>
       <div class="pg" id="prize-grid"></div>
-      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還擺放庫存</div>
+      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒有擺放庫存</div>
     </div>
 
     <div id="p-other" class="page">
@@ -365,7 +365,6 @@ const firebaseConfig = {
     messagingSenderId: "630194612465",
     appId: "1:630194612465:web:ee860259a9ebbb30286150"
   };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -448,7 +447,6 @@ async function saveToCloud() {
 </script>
 
 <script>
-// 🛠️ 核心防護：如果物件尚未初始化才建立，防止重複覆蓋 Firebase 抓下來的資料
 if (!window.DB) {
   window.DB = { machines: [], prizes: [], categories: [] };
 }
@@ -864,6 +862,42 @@ function cancelPrizeForm() {
   document.getElementById('prize-add-form').style.display = 'none';
 }
 
+// 🛠️ 核心修改：新增前端圖片自動壓縮函數
+function compressImage(file, maxWidth, maxHeight, quality, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var width = img.width;
+      var height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // 壓縮輸出為 JPEG
+      var base64 = canvas.toDataURL('image/jpeg', quality);
+      callback(base64);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 async function savePrize() {
   var name = document.getElementById('pz-name').value.trim();
   var cost = parseInt(document.getElementById('pz-cost').value) || 0;
@@ -874,7 +908,7 @@ async function savePrize() {
   if (!name || qty < 0) return;
 
   document.getElementById('pz-btn-submit').disabled = true;
-  document.getElementById('pz-btn-submit').innerText = "儲存同步中...";
+  document.getElementById('pz-btn-submit').innerText = "圖片縮小並同步中...";
 
   if (editIdx > -1) {
     window.DB.prizes[editIdx].name = name;
@@ -888,12 +922,11 @@ async function savePrize() {
   } else {
     var file = document.getElementById('pz-img').files[0];
     if (file) {
-      var r = new FileReader(); 
-      r.onload = async function(e) { 
-        await doSavePrize(name, cost, qty, note, e.target.result); 
+      // 🛠️ 核心修改：寬高限 400px，畫質 0.6，使圖片控制在 20KB 左右
+      compressImage(file, 400, 400, 0.6, async function(compressedBase64) {
+        await doSavePrize(name, cost, qty, note, compressedBase64);
         document.getElementById('pz-btn-submit').disabled = false;
-      }; 
-      r.readAsDataURL(file);
+      });
     } else {
       await doSavePrize(name, cost, qty, note, '');
       document.getElementById('pz-btn-submit').disabled = false;
@@ -932,7 +965,6 @@ function renderOther() {
                   '<div class="st"><div class="lb">雜項差額</div><div class="vl">$' + (ti - te) + '</div></div>';
   
   var sortedCats = [...window.DB.categories].reverse();
-  
   list.innerHTML = sortedCats.map(c => {
     var iAmt = 0, eAmt = 0; if (c.items) c.items.forEach(it => { if (it.type === 'buy') eAmt += it.amount; else iAmt += it.amount; });
     return '<div class="card tap" onclick="openOth(' + c.id + ')">' +
