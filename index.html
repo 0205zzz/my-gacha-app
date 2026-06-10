@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v11</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -103,7 +103,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 .mc .lb{color:var(--text3);font-size:11px;margin-bottom:2px}
 
 .pg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.pc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden}
+.pc {background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden}
 .pi {width:100%;height:110px;object-fit:cover;display:block}
 .pph{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text3);font-size:32px}
 .pinfo{padding:8px 10px 10px}
@@ -137,7 +137,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 
 .sslbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding:0 2px}
 .ssec{margin-bottom:18px}
-.thopts">display:flex;gap:8px;margin-top:6px}
+.thopts{display:flex;gap:8px;margin-top:6px}
 .thopt{flex:1;border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;cursor:pointer;font-size:12px;font-weight:500}
 .thopt.on{border-color:var(--green);color:var(--green)}
 .thsw{width:28px;height:28px;border-radius:50%;margin:0 auto 6px;border:2px solid var(--border)}
@@ -201,7 +201,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
         </div>
       </div>
       <div class="pg" id="prize-grid"></div>
-      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒紀錄庫存</div>
+      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒有擺放庫存</div>
     </div>
 
     <div id="p-other" class="page">
@@ -242,7 +242,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
       <div class="ssec">
         <div class="sslbl">外觀</div>
         <div class="card">
-          <div style="font-size:14px;font-weight:500;margin-bottom:8px">背景顏色</div>
+          <div style="font-size:14px;font-500;margin-bottom:8px">背景顏色</div>
           <div class="thopts">
             <div class="thopt on" id="th-dark" onclick="setTheme('dark')"><div class="thsw" style="background:#0f0f0f"></div>深色</div>
             <div class="thopt" id="th-light" onclick="setTheme('light')"><div class="thsw" style="background:#f4f3ee;border-color:#ccc"></div>淺色</div>
@@ -841,7 +841,6 @@ function showAddPrize() {
   document.getElementById('prize-add-form').style.display = 'block';
 }
 
-// 【新功能：開啟編輯獎品】
 function openEditPrize(idx) {
   var p = window.DB.prizes[idx];
   document.getElementById('pz-form-title').innerText = "編輯獎品資料";
@@ -850,7 +849,6 @@ function openEditPrize(idx) {
   document.getElementById('pz-cost').value = p.cost;
   document.getElementById('pz-qty').value = p.qty;
   document.getElementById('pz-note').value = p.note || '';
-  // 編輯模式隱藏上傳圖片避免不小心蓋掉，如需改圖可重新建立
   document.getElementById('pz-img-container').style.display = 'none'; 
   document.getElementById('pz-btn-submit').innerHTML = '<i class="ti ti-device-floppy"></i> 儲存修改';
   document.getElementById('prize-add-form').style.display = 'block';
@@ -861,45 +859,58 @@ function cancelPrizeForm() {
   document.getElementById('prize-add-form').style.display = 'none';
 }
 
-function savePrize() {
+// 🛠️ 核心修復：使用 async 確保資料庫有確實同步完才渲染、關視窗
+async function savePrize() {
   var name = document.getElementById('pz-name').value.trim();
   var cost = parseInt(document.getElementById('pz-cost').value) || 0;
   var qty = parseInt(document.getElementById('pz-qty').value) || 0;
   var note = document.getElementById('pz-note').value.trim();
   var editIdx = parseInt(document.getElementById('pz-edit-index').value);
   
-  if (!name || qty < 0) return; // 數量可以修改為 0 代表發完了
+  if (!name || qty < 0) return;
+
+  document.getElementById('pz-btn-submit').disabled = true;
+  document.getElementById('pz-btn-submit').innerText = "儲存同步中...";
 
   if (editIdx > -1) {
-    // 編輯模式：更新原本有的數據
     window.DB.prizes[editIdx].name = name;
     window.DB.prizes[editIdx].cost = cost;
     window.DB.prizes[editIdx].qty = qty;
     window.DB.prizes[editIdx].note = note;
-    window.save(); renderPrizes();
+    await window.save(); 
+    renderPrizes();
     document.getElementById('prize-add-form').style.display = 'none';
+    document.getElementById('pz-btn-submit').disabled = false;
   } else {
-    // 新增模式
     var file = document.getElementById('pz-img').files[0];
     if (file) {
       var r = new FileReader(); 
-      r.onload = function(e) { doSavePrize(name, cost, qty, note, e.target.result); }; 
+      r.onload = async function(e) { 
+        await doSavePrize(name, cost, qty, note, e.target.result); 
+        document.getElementById('pz-btn-submit').disabled = false;
+      }; 
       r.readAsDataURL(file);
     } else {
-      doSavePrize(name, cost, qty, note, '');
+      await doSavePrize(name, cost, qty, note, '');
+      document.getElementById('pz-btn-submit').disabled = false;
     }
   }
 }
 
-function doSavePrize(n, c, q, nt, img) {
+async function doSavePrize(n, c, q, nt, img) {
   if(!window.DB.prizes) window.DB.prizes = [];
   window.DB.prizes.push({ name: n, cost: c, qty: q, note: nt, img: img });
-  window.save(); renderPrizes();
+  await window.save(); 
+  renderPrizes();
   document.getElementById('prize-add-form').style.display = 'none';
 }
 
-function delPrize(i) {
-  if (confirm('確定完全刪除此庫存？')) { window.DB.prizes.splice(i, 1); window.save(); renderPrizes(); }
+async function delPrize(i) {
+  if (confirm('確定完全刪除此庫存？')) { 
+    window.DB.prizes.splice(i, 1); 
+    await window.save(); 
+    renderPrizes(); 
+  }
 }
 
 function renderOther() {
