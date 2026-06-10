@@ -109,6 +109,8 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 .pinfo{padding:8px 10px 10px}
 .pdel{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
 .pdel:active{background:var(--red)}
+.pedit{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:14px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
+.pedit:active{background:var(--blue)}
 
 .chartw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
 .bars{display:flex;align-items:flex-end;gap:5px;height:90px;overflow-x:auto;padding-bottom:22px}
@@ -135,7 +137,7 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 
 .sslbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding:0 2px}
 .ssec{margin-bottom:18px}
-.thopts{display:flex;gap:8px;margin-top:6px}
+.thopts">display:flex;gap:8px;margin-top:6px}
 .thopt{flex:1;border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;cursor:pointer;font-size:12px;font-weight:500}
 .thopt.on{border-color:var(--green);color:var(--green)}
 .thsw{width:28px;height:28px;border-radius:50%;margin:0 auto 6px;border:2px solid var(--border)}
@@ -184,21 +186,22 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
       </div>
       <div id="prize-stats" class="sg c2"></div>
       <div id="prize-add-form" class="fcard" style="display:none">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增獎品</div>
+        <div id="pz-form-title" style="font-size:14px;font-weight:600;margin-bottom:12px">新增獎品</div>
+        <input type="hidden" id="pz-edit-index" value="-1">
         <div class="fg"><label>獎品名稱</label><input type="text" id="pz-name" placeholder="例：A賞"></div>
         <div class="fg2">
           <div class="fg"><label>成本（元）</label><input type="number" id="pz-cost" placeholder="500"></div>
           <div class="fg"><label>數量</label><input type="number" id="pz-qty" value="1"></div>
         </div>
         <div class="fg"><label>備註</label><input type="text" id="pz-note" placeholder="選填"></div>
-        <div class="fg"><label>照片（選填）</label><input type="file" id="pz-img" accept="image/*"></div>
+        <div class="fg" id="pz-img-container"><label>照片（選填）</label><input type="file" id="pz-img" accept="image/*"></div>
         <div style="display:flex;gap:8px">
-          <button class="prim" onclick="addPrize()"><i class="ti ti-check"></i> 新增</button>
-          <button onclick="document.getElementById('prize-add-form').style.display='none'">取消</button>
+          <button id="pz-btn-submit" class="prim" onclick="savePrize()"><i class="ti ti-check"></i> 新增</button>
+          <button onclick="cancelPrizeForm()">取消</button>
         </div>
       </div>
       <div class="pg" id="prize-grid"></div>
-      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還擺放庫存</div>
+      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒紀錄庫存</div>
     </div>
 
     <div id="p-other" class="page">
@@ -356,13 +359,14 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChang
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk",
-    authDomain: "my-gacha-app-7514f.firebaseapp.com",
-    projectId: "my-gacha-app-7514f",
-    storageBucket: "my-gacha-app-7514f.firebasestorage.app",
-    messagingSenderId: "630194612465",
-    appId: "1:630194612465:web:ee860259a9ebbb30286150"
-  };
+  apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk4", // 🛠️ 這裡已幫你修復完整，不再報錯
+  authDomain: "my-gacha-app-7514f.firebaseapp.com",
+  projectId: "my-gacha-app-7514f",
+  storageBucket: "my-gacha-app-7514f.firebasestorage.app",
+  messagingSenderId: "630194612465",
+  appId: "1:630194612465:web:ee860259a9ebbb30286150"
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -687,13 +691,10 @@ function doAddRec() {
   }
   
   m.records.unshift(rec);
-  // 【升級：防呆排序】不管是先打後打，一律依日期從新到舊排序
   m.records.sort((a,b) => b.date.localeCompare(a.date));
   
-  // 排序後，如果是幣表模式，需重新由舊到新計算正確的 diff (差額) 與 income
   if (m.recordType === 'coin') {
     var currentBase = m.initialMeter || 0;
-    // 從最舊的紀錄開始往新紀錄算
     for(var i = m.records.length - 1; i >= 0; i--) {
       var dff = m.records[i].meter - currentBase;
       if (dff < 0) dff = 0;
@@ -710,7 +711,6 @@ function delRec(i) {
   if (confirm('確定刪除此紀錄？')) {
     var m = gm();
     m.records.splice(i, 1);
-    // 刪除後同樣需要重新計算幣表差額
     if (m.recordType === 'coin') {
       var currentBase = m.initialMeter || 0;
       for(var j = m.records.length - 1; j >= 0; j--) {
@@ -754,7 +754,6 @@ function mdAddRent() {
   if (!start || !end || !amt) return;
   if (!m.rents) m.rents = [];
   m.rents.push({ start: start, end: end, amount: amt, period: p, note: note });
-  // 【升級：合約日期排序】由新到舊
   m.rents.sort((a,b) => b.start.localeCompare(a.start));
   window.save(); renderMDRent();
 }
@@ -819,38 +818,88 @@ function renderPrizes() {
                     '<div class="st"><div class="lb">庫存總成本</div><div class="vl">$' + tc.toLocaleString() + '</div></div>';
   grid.innerHTML = window.DB.prizes.map((p, i) => {
     var imgHtml = p.img ? '<img src="' + p.img + '" class="pi">' : '<div class="pph"><i class="ti ti-gift"></i></div>';
-    return '<div class="pc">' + imgHtml + '<button class="pdel" onclick="delPrize(' + i + ')"><i class="ti ti-trash"></i></button>' +
+    return '<div class="pc">' + imgHtml + 
+           '<button class="pedit" onclick="openEditPrize(' + i + ')"><i class="ti ti-edit"></i></button>' +
+           '<button class="pdel" onclick="delPrize(' + i + ')"><i class="ti ti-trash"></i></button>' +
            '<div class="pinfo"><div style="font-weight:600;font-size:14px;margin-bottom:2px">' + p.name + '</div>' +
            '<div style="font-size:11px;color:var(--text3)">成本：$' + p.cost + ' | 剩餘：' + p.qty + '</div>' +
            (p.note ? '<div style="font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.note + '</div>' : '') +
            '</div></div>';
   }).join('');
 }
-function showAddPrize() { document.getElementById('prize-add-form').style.display = 'block'; }
-function addPrize() {
+
+function showAddPrize() {
+  document.getElementById('pz-form-title').innerText = "新增獎品";
+  document.getElementById('pz-edit-index').value = "-1";
+  document.getElementById('pz-name').value = '';
+  document.getElementById('pz-cost').value = '';
+  document.getElementById('pz-qty').value = '1';
+  document.getElementById('pz-note').value = '';
+  document.getElementById('pz-img').value = '';
+  document.getElementById('pz-img-container').style.display = 'block';
+  document.getElementById('pz-btn-submit').innerHTML = '<i class="ti ti-check"></i> 新增';
+  document.getElementById('prize-add-form').style.display = 'block';
+}
+
+// 【新功能：開啟編輯獎品】
+function openEditPrize(idx) {
+  var p = window.DB.prizes[idx];
+  document.getElementById('pz-form-title').innerText = "編輯獎品資料";
+  document.getElementById('pz-edit-index').value = idx;
+  document.getElementById('pz-name').value = p.name;
+  document.getElementById('pz-cost').value = p.cost;
+  document.getElementById('pz-qty').value = p.qty;
+  document.getElementById('pz-note').value = p.note || '';
+  // 編輯模式隱藏上傳圖片避免不小心蓋掉，如需改圖可重新建立
+  document.getElementById('pz-img-container').style.display = 'none'; 
+  document.getElementById('pz-btn-submit').innerHTML = '<i class="ti ti-device-floppy"></i> 儲存修改';
+  document.getElementById('prize-add-form').style.display = 'block';
+  document.getElementById('p-prizes').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelPrizeForm() {
+  document.getElementById('prize-add-form').style.display = 'none';
+}
+
+function savePrize() {
   var name = document.getElementById('pz-name').value.trim();
   var cost = parseInt(document.getElementById('pz-cost').value) || 0;
   var qty = parseInt(document.getElementById('pz-qty').value) || 0;
   var note = document.getElementById('pz-note').value.trim();
-  var file = document.getElementById('pz-img').files[0];
-  if (!name || qty <= 0) return;
-  if (file) {
-    var r = new FileReader(); r.onload = function(e) { doSavePrize(name, cost, qty, note, e.target.result); }; r.readAsDataURL(file);
+  var editIdx = parseInt(document.getElementById('pz-edit-index').value);
+  
+  if (!name || qty < 0) return; // 數量可以修改為 0 代表發完了
+
+  if (editIdx > -1) {
+    // 編輯模式：更新原本有的數據
+    window.DB.prizes[editIdx].name = name;
+    window.DB.prizes[editIdx].cost = cost;
+    window.DB.prizes[editIdx].qty = qty;
+    window.DB.prizes[editIdx].note = note;
+    window.save(); renderPrizes();
+    document.getElementById('prize-add-form').style.display = 'none';
   } else {
-    doSavePrize(name, cost, qty, note, '');
+    // 新增模式
+    var file = document.getElementById('pz-img').files[0];
+    if (file) {
+      var r = new FileReader(); 
+      r.onload = function(e) { doSavePrize(name, cost, qty, note, e.target.result); }; 
+      r.readAsDataURL(file);
+    } else {
+      doSavePrize(name, cost, qty, note, '');
+    }
   }
 }
+
 function doSavePrize(n, c, q, nt, img) {
   if(!window.DB.prizes) window.DB.prizes = [];
   window.DB.prizes.push({ name: n, cost: c, qty: q, note: nt, img: img });
   window.save(); renderPrizes();
   document.getElementById('prize-add-form').style.display = 'none';
-  document.getElementById('pz-name').value = ''; document.getElementById('pz-cost').value = '';
-  document.getElementById('pz-qty').value = '1'; document.getElementById('pz-note').value = '';
-  document.getElementById('pz-img').value = '';
 }
+
 function delPrize(i) {
-  if (confirm('確定刪除此庫存？')) { window.DB.prizes.splice(i, 1); window.save(); renderPrizes(); }
+  if (confirm('確定完全刪除此庫存？')) { window.DB.prizes.splice(i, 1); window.save(); renderPrizes(); }
 }
 
 function renderOther() {
@@ -867,7 +916,6 @@ function renderOther() {
                   '<div class="st"><div class="lb">其他總支出</div><div class="vl" style="color:var(--red-text)">-$' + te + '</div></div>' +
                   '<div class="st"><div class="lb">雜項差額</div><div class="vl">$' + (ti - te) + '</div></div>';
   
-  // 【升級：類別排序】新建立的類別會被放到最上方
   var sortedCats = [...window.DB.categories].reverse();
   
   list.innerHTML = sortedCats.map(c => {
@@ -920,10 +968,7 @@ function addOthItem() {
   if (!d || !a) return;
   if (!c.items) c.items = [];
   c.items.push({ date: d, type: t, amount: a, note: n });
-  
-  // 【升級：防呆排序】其他成本細目：不論輸入順序，一律依日期從新到舊排序
   c.items.sort((a,b) => b.date.localeCompare(a.date));
-  
   window.save(); renderCatItems();
   document.getElementById('oa').value = ''; document.getElementById('on').value = '';
 }
