@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v16</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v17</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -67,7 +67,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 .c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
-.st .vl{font-size:16px;font-weight:600}
+.st .vl">font-size:16px;font-weight:600}
 .pos{color:var(--green-text)}.neg{color:var(--red-text)}
 
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:500}
@@ -149,6 +149,11 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 .setting-row:last-child{border-bottom:none}
 .sr-label{font-size:14px;font-weight:500}
 .sr-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* 搜尋框樣式 */
+.search-box-w {margin-bottom: 12px; position: relative; display: flex; align-items: center;}
+.search-box-w i {position: absolute; left: 12px; color: var(--text3); font-size: 16px;}
+.search-box-w input {padding-left: 34px;}
 </style>
 </head>
 <body>
@@ -175,6 +180,10 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
     <div id="p-monthly" class="page">
       <div class="topbar"><h2><i class="ti ti-calendar-stats"></i> 月報表</h2>
         <button onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> 匯出</button>
+      </div>
+      <div class="search-box-w">
+        <i class="ti ti-search"></i>
+        <input type="text" id="monthly-search" placeholder="搜尋年份、月份或機台名稱..." oninput="renderMonthly()">
       </div>
       <div id="monthly-content"></div>
     </div>
@@ -464,7 +473,10 @@ function navTo(pageId) {
   document.getElementById('b-' + pageId.replace('p-', '')).classList.add('on');
   closeAllSubs();
   if (pageId === 'p-machines') renderHome();
-  if (pageId === 'p-monthly') renderMonthly();
+  if (pageId === 'p-monthly') {
+    document.getElementById('monthly-search').value = ''; // 切換時清空搜尋
+    renderMonthly();
+  }
   if (pageId === 'p-prizes') renderPrizes();
   if (pageId === 'p-other') renderOther();
 }
@@ -551,20 +563,17 @@ function renderHome() {
   renderChart();
 }
 
-// 🛠️ 核心修改：首頁圖表同步支援「依天數按比例切分租金」並加入紅色柱子統計
 function renderChart() {
   var cw = document.getElementById('home-chart'); var mm = {};
   if(!window.DB || !window.DB.machines) return;
   
   window.DB.machines.forEach(m => {
-    // 1. 統計常規抄表收入與抄表成本
     m.records.forEach(r => {
       var ym = r.date.slice(0, 7); if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
       mm[ym].inc += r.income; 
       mm[ym].exp += (r.cost || 0);
     });
     
-    // 2. 依天數切分租金至各自月份的支出中
     if (m.rents) {
       m.rents.forEach(rent => {
         var s = new Date(rent.start + 'T00:00:00'), e = new Date(rent.end + 'T00:00:00');
@@ -579,7 +588,7 @@ function renderChart() {
           var ym = y + '-' + mo;
           
           if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
-          mm[ym].exp += dailyRent; // 核心：將每日分攤租金完美歸納進首頁圖表成本中
+          mm[ym].exp += dailyRent;
           
           cur.setDate(cur.getDate() + 1);
         }
@@ -587,7 +596,7 @@ function renderChart() {
     }
   });
   
-  var keys = Object.keys(mm).sort();
+  var keys = Object.keys(mm).sort(); // 首頁圖表維持時間軸正序呈現 (舊到新)
   if (keys.length === 0) { cw.style.display = 'none'; return; }
   cw.style.display = 'block';
   var max = 0;
@@ -797,7 +806,7 @@ function mdAddRent() {
   if (!start || !end || !amt) return;
   if (!m.rents) m.rents = [];
   m.rents.push({ start: start, end: end, amount: amt, period: p, note: note });
-  m.rents.sort((a,b) => b.start.localeCompare(a.start));
+  m.rents.sort((a,b) => b.start.lambdaCompare(a.start));
   window.save(); renderMDRent();
 }
 function delRent(i) {
@@ -809,13 +818,17 @@ function toggleInactive() {
   window.save();
 }
 
+// 🛠️ 核心修改：月報表支援「最新月份在最上方」與「即時關鍵字篩選」
 function renderMonthly() {
-  var c = document.getElementById('monthly-content'); var data = {};
+  var c = document.getElementById('monthly-content'); 
+  var keyword = document.getElementById('monthly-search').value.trim().toLowerCase();
+  var data = {};
   if(!window.DB || !window.DB.machines) return;
   
   window.DB.machines.forEach(m => {
     m.records.forEach(r => {
-      var ym = r.date.slice(0, 7); if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
+      var ym = r.date.slice(0, 7); // 格式為 YYYY-MM
+      if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
       data[ym].inc += r.income; data[ym].cost += (r.cost || 0);
       if (!data[ym].details[m.name]) data[ym].details[m.name] = { inc: 0, cost: 0, rent: 0 };
       data[ym].details[m.name].inc += r.income; data[ym].details[m.name].cost += (r.cost || 0);
@@ -846,20 +859,69 @@ function renderMonthly() {
     }
   });
   
+  // 核心：使用 .reverse() 讓 YYYY-MM 大的排前面（即最新月份排在最上面）
   var keys = Object.keys(data).sort().reverse();
   if (keys.length === 0) { c.innerHTML = '<div class="empty"><i class="ti ti-calendar-stats"></i>尚無月份報表數據</div>'; return; }
-  c.innerHTML = keys.map(k => {
-    var o = data[k], net = o.inc - o.cost - o.rent;
-    var dHtml = Object.keys(o.details).map(mn => {
-      var det = o.details[mn], p = det.inc - det.cost - det.rent;
-      return '<div class="orr"><span>' + mn + '</span><span class="' + (p >= 0 ? 'pos' : 'neg') + '">$' + Math.round(p).toLocaleString() + '</span></div>' +
-             '<div class="osub"><span>收 $' + det.inc + ' | 成本 $' + det.cost + ' | 租 $' + Math.round(det.rent).toLocaleString() + '</span></div>';
-    }).join('');
-    return '<div class="mb"><div class="mhd" style="display:flex;justify-content:between"><span>' + k + ' 總覽</span>' +
-           '<span class="' + (net >= 0 ? 'pos' : 'neg') + '" style="margin-left:auto">$' + Math.round(net).toLocaleString() + '</span></div>' +
-           '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">總收: $' + o.inc + ' | 總成本: $' + o.cost + ' | 總分攤租金: $' + Math.round(o.rent).toLocaleString() + '</div>' +
-           '<div style="border-top:1px dashed var(--border);padding-top:6px">' + dHtml + '</div></div>';
-  }).join('');
+  
+  var htmlOutput = '';
+  var foundAny = false;
+
+  keys.forEach(k => {
+    var o = data[k];
+    var net = o.inc - o.cost - o.rent;
+    
+    // 將 YYYY-MM 改為易讀的「XXXX年XX月」供關鍵字比對與呈現
+    var parts = k.split('-');
+    var formattedMonthLabel = parts[0] + '年' + parts[1] + '月';
+    
+    // 篩選機台細節
+    var matchedDetailsHtml = '';
+    var hasMatchedMachine = false;
+
+    Object.keys(o.details).forEach(mn => {
+      var det = o.details[mn];
+      var p = det.inc - det.cost - det.rent;
+      
+      // 比對機台名稱
+      var isMachineMatch = mn.toLowerCase().includes(keyword);
+      
+      if (!keyword || isMachineMatch) {
+        hasMatchedMachine = true;
+        matchedDetailsHtml += '<div class="orr"><span>' + mn + '</span><span class="' + (p >= 0 ? 'pos' : 'neg') + '">$' + Math.round(p).toLocaleString() + '</span></div>' +
+                             '<div class="osub"><span>收 $' + det.inc + ' | 成本 $' + det.cost + ' | 租 $' + Math.round(det.rent).toLocaleString() + '</span></div>';
+      }
+    });
+
+    // 判斷整個月份標籤本身是否命中關鍵字 (例：輸入 2026 或 6月)
+    var isMonthLabelMatch = formattedMonthLabel.toLowerCase().includes(keyword) || k.includes(keyword);
+
+    // 如果有輸入關鍵字，且月份沒中、機台也沒中，這個月就隱藏
+    if (keyword && !isMonthLabelMatch && !hasMatchedMachine) {
+      return; 
+    }
+
+    // 如果是月份命中而機台沒中，為了完整性，依然要把該月所有機台呈現出來
+    if (keyword && isMonthLabelMatch && !hasMatchedMachine) {
+      Object.keys(o.details).forEach(mn => {
+        var det = o.details[mn];
+        var p = det.inc - det.cost - det.rent;
+        matchedDetailsHtml += '<div class="orr"><span>' + mn + '</span><span class="' + (p >= 0 ? 'pos' : 'neg') + '">$' + Math.round(p).toLocaleString() + '</span></div>' +
+                             '<div class="osub"><span>收 $' + det.inc + ' | 成本 $' + det.cost + ' | 租 $' + Math.round(det.rent).toLocaleString() + '</span></div>';
+      });
+    }
+
+    foundAny = true;
+    htmlOutput += '<div class="mb"><div class="mhd" style="display:flex;justify-content:between"><span>' + formattedMonthLabel + ' 總覽</span>' +
+                  '<span class="' + (net >= 0 ? 'pos' : 'neg') + '" style="margin-left:auto">$' + Math.round(net).toLocaleString() + '</span></div>' +
+                  '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">總收: $' + o.inc + ' | 總成本: $' + o.cost + ' | 總分攤租金: $' + Math.round(o.rent).toLocaleString() + '</div>' +
+                  '<div style="border-top:1px dashed var(--border);padding-top:6px">' + matchedDetailsHtml + '</div></div>';
+  });
+
+  if (!foundAny) {
+    c.innerHTML = '<div class="empty"><i class="ti ti-search-off"></i>找不到符合「' + keyword + '」的報表資料</div>';
+  } else {
+    c.innerHTML = htmlOutput;
+  }
 }
 
 function renderPrizes() {
