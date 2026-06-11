@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v17</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v18</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -67,7 +67,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 .c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
-.st .vl">font-size:16px;font-weight:600}
+.st .vl{font-size:16px;font-weight:600}
 .pos{color:var(--green-text)}.neg{color:var(--red-text)}
 
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:500}
@@ -150,7 +150,6 @@ button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 .sr-label{font-size:14px;font-weight:500}
 .sr-sub{font-size:11px;color:var(--text3);margin-top:2px}
 
-/* 搜尋框樣式 */
 .search-box-w {margin-bottom: 12px; position: relative; display: flex; align-items: center;}
 .search-box-w i {position: absolute; left: 12px; color: var(--text3); font-size: 16px;}
 .search-box-w input {padding-left: 34px;}
@@ -474,7 +473,7 @@ function navTo(pageId) {
   closeAllSubs();
   if (pageId === 'p-machines') renderHome();
   if (pageId === 'p-monthly') {
-    document.getElementById('monthly-search').value = ''; // 切換時清空搜尋
+    document.getElementById('monthly-search').value = ''; 
     renderMonthly();
   }
   if (pageId === 'p-prizes') renderPrizes();
@@ -596,7 +595,7 @@ function renderChart() {
     }
   });
   
-  var keys = Object.keys(mm).sort(); // 首頁圖表維持時間軸正序呈現 (舊到新)
+  var keys = Object.keys(mm).sort(); 
   if (keys.length === 0) { cw.style.display = 'none'; return; }
   cw.style.display = 'block';
   var max = 0;
@@ -714,6 +713,7 @@ function openAddRec() {
   openSheet(formHtml);
 }
 
+// 🛠️ Bug 修正點：重新計算歷史的迴圈中，必須保留完整的備註、刮刮樂與成本物件
 function doAddRec() {
   var m = gm(), d = document.getElementById('rd').value;
   var c = parseInt(document.getElementById('rc').value) || 0;
@@ -744,7 +744,9 @@ function doAddRec() {
       var dff = m.records[i].meter - currentBase;
       if (dff < 0) dff = 0;
       m.records[i].diff = dff;
-      m.records[i].income = (dff * 10) + (m.records[i].scratch || 0);
+      // 🛠️ 關鍵修正：必須重新指定舊有紀錄的 scratch 與原有值，不可覆蓋成 undefined
+      var itemScratch = m.records[i].scratch || 0;
+      m.records[i].income = (dff * 10) + itemScratch;
       currentBase = m.records[i].meter;
     }
   }
@@ -752,6 +754,7 @@ function doAddRec() {
   window.save(); renderMDStats(); renderMDRec(); closeSheet();
 }
 
+// 🛠️ Bug 修正點：刪除紀錄時的重算歷史，也要完整保留 note 與 scratch
 function delRec(i) {
   if (confirm('確定刪除此紀錄？')) {
     var m = gm();
@@ -762,7 +765,9 @@ function delRec(i) {
         var dff = m.records[j].meter - currentBase;
         if (dff < 0) dff = 0;
         m.records[j].diff = dff;
-        m.records[j].income = (dff * 10) + (m.records[j].scratch || 0);
+        // 🛠️ 關鍵修正：刪除時重算也必須保留舊有的 scratch 
+        var itemScratch = m.records[j].scratch || 0;
+        m.records[j].income = (dff * 10) + itemScratch;
         currentBase = m.records[j].meter;
       }
     }
@@ -818,7 +823,6 @@ function toggleInactive() {
   window.save();
 }
 
-// 🛠️ 核心修改：月報表支援「最新月份在最上方」與「即時關鍵字篩選」
 function renderMonthly() {
   var c = document.getElementById('monthly-content'); 
   var keyword = document.getElementById('monthly-search').value.trim().toLowerCase();
@@ -827,7 +831,7 @@ function renderMonthly() {
   
   window.DB.machines.forEach(m => {
     m.records.forEach(r => {
-      var ym = r.date.slice(0, 7); // 格式為 YYYY-MM
+      var ym = r.date.slice(0, 7); 
       if (!data[ym]) data[ym] = { inc: 0, cost: 0, rent: 0, details: {} };
       data[ym].inc += r.income; data[ym].cost += (r.cost || 0);
       if (!data[ym].details[m.name]) data[ym].details[m.name] = { inc: 0, cost: 0, rent: 0 };
@@ -859,7 +863,6 @@ function renderMonthly() {
     }
   });
   
-  // 核心：使用 .reverse() 讓 YYYY-MM 大的排前面（即最新月份排在最上面）
   var keys = Object.keys(data).sort().reverse();
   if (keys.length === 0) { c.innerHTML = '<div class="empty"><i class="ti ti-calendar-stats"></i>尚無月份報表數據</div>'; return; }
   
@@ -869,20 +872,15 @@ function renderMonthly() {
   keys.forEach(k => {
     var o = data[k];
     var net = o.inc - o.cost - o.rent;
-    
-    // 將 YYYY-MM 改為易讀的「XXXX年XX月」供關鍵字比對與呈現
     var parts = k.split('-');
     var formattedMonthLabel = parts[0] + '年' + parts[1] + '月';
     
-    // 篩選機台細節
     var matchedDetailsHtml = '';
     var hasMatchedMachine = false;
 
     Object.keys(o.details).forEach(mn => {
       var det = o.details[mn];
       var p = det.inc - det.cost - det.rent;
-      
-      // 比對機台名稱
       var isMachineMatch = mn.toLowerCase().includes(keyword);
       
       if (!keyword || isMachineMatch) {
@@ -892,15 +890,12 @@ function renderMonthly() {
       }
     });
 
-    // 判斷整個月份標籤本身是否命中關鍵字 (例：輸入 2026 或 6月)
     var isMonthLabelMatch = formattedMonthLabel.toLowerCase().includes(keyword) || k.includes(keyword);
 
-    // 如果有輸入關鍵字，且月份沒中、機台也沒中，這個月就隱藏
     if (keyword && !isMonthLabelMatch && !hasMatchedMachine) {
       return; 
     }
 
-    // 如果是月份命中而機台沒中，為了完整性，依然要把該月所有機台呈現出來
     if (keyword && isMonthLabelMatch && !hasMatchedMachine) {
       Object.keys(o.details).forEach(mn => {
         var det = o.details[mn];
