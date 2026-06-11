@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v20</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v22</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -67,7 +67,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 .c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
-.st .vl">.vl{font-size:16px;font-weight:600}
+.st .vl{font-size:16px;font-weight:600}
 .pos{color:var(--green-text)}.neg{color:var(--red-text)}
 
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:500}
@@ -669,7 +669,6 @@ function delMachine() {
   }
 }
 
-// 🛠️ 歷史紀錄表格渲染優化
 function renderMDRec() {
   var m = gm(), tbody = document.getElementById('rec-tb'), h = document.getElementById('th-rec-head');
   if (!m.records || m.records.length === 0) {
@@ -681,15 +680,15 @@ function renderMDRec() {
                        : '<th>日期</th><th>實收</th><th>賣刮</th><th>總收入</th><th>成本</th><th>備註說明</th><th></th>';
   tbody.innerHTML = m.records.map((r, i) => {
     var scratch = r.scratch || 0;
-    // 強制轉字串並過濾前後空白
     var noteStr = (r.note !== undefined && r.note !== null) ? String(r.note).trim() : '';
     var displayNote = noteStr ? '<span style="color:var(--text);font-size:13px;display:inline-block;max-width:160px;white-space:normal;word-break:break-all;font-weight:500;">' + noteStr + '</span>' : '-';
 
+    // 🛠️ 這裡的刪除按鈕原本是垃圾桶圖示，現在換成小圖示叉叉 ti-x
     return isCoin ?
       '<tr><td>' + r.date + '</td><td>' + (r.meter || 0) + '</td><td>' + (r.diff || 0) + '</td><td>$' + scratch + '</td><td><strong>$' + r.income + '</strong></td><td>$' + (r.cost || 0) + '</td><td>' + displayNote + '</td>' +
-      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red);padding:2px 6px;"><i class="ti ti-trash"></i></button></td></tr>' :
+      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red);padding:4px 6px;font-size:14px;"><i class="ti ti-x"></i></button></td></tr>' :
       '<tr><td>' + r.date + '</td><td>$' + (r.amount || 0) + '</td><td>$' + scratch + '</td><td><strong>$' + r.income + '</strong></td><td>$' + (r.cost || 0) + '</td><td>' + displayNote + '</td>' +
-      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red);padding:2px 6px;"><i class="ti ti-trash"></i></button></td></tr>';
+      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red);padding:4px 6px;font-size:14px;"><i class="ti ti-x"></i></button></td></tr>';
   }).join('');
 }
 
@@ -712,20 +711,18 @@ function openAddRec() {
   
   formHtml += '<div class="fg"><label>賣刮 / 買洞金額（元，選填）</label><input type="number" id="rs_scratch" placeholder="直接計入本次總收入" value="0"></div>' +
               '<div class="fg"><label>補貨/維修等成本（元，選填）</label><input type="number" id="rc" placeholder="0"></div>' +
-              '<div class="fg"><label>備註文字（選填）</label><input type="text" id="rn" placeholder="例：誰買刮、清台、換馬達"></div>' +
+              '<div class="fg"><label>備註文字（選填）</label><input type="text" id="rec-note" placeholder="例：誰買刮、清台、換馬達"></div>' +
               '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="doAddRec()">確認送出</button>';
   openSheet(formHtml);
 }
 
-// 🛠️ 核心修正：綁定機制優化，防止重算迴圈洗掉 note 資料
 function doAddRec() {
   var m = gm(), d = document.getElementById('rd').value;
   var c = parseInt(document.getElementById('rc').value) || 0;
-  var n = document.getElementById('rn').value.trim(); // 確實拿到字串
+  var n = document.getElementById('rec-note') ? document.getElementById('rec-note').value.trim() : ''; 
   var scratch = parseInt(document.getElementById('rs_scratch').value) || 0;
   if (!d) return;
 
-  // 1. 先建立新物件，確實綁定傳入的備註 n
   var rec = { date: d, cost: c, note: n, scratch: scratch, income: 0 };
   
   if (m.recordType === 'coin') {
@@ -743,7 +740,6 @@ function doAddRec() {
   m.records.unshift(rec);
   m.records.sort((a,b) => b.date.localeCompare(a.date));
   
-  // 2. 歷史紀錄重算迴圈：只重算金額與幣表差額，備註與賣刮金「由前往後」完全繼承，禁止任何人洗空！
   var currentBase = m.initialMeter || 0;
   for(var i = m.records.length - 1; i >= 0; i--) {
     var itemScratch = (m.records[i].scratch !== undefined) ? m.records[i].scratch : 0;
@@ -760,7 +756,6 @@ function doAddRec() {
       m.records[i].income = (m.records[i].amount || 0) + itemScratch;
     }
     
-    // 強制灌回，保證不遺失
     m.records[i].note = itemNote;
     m.records[i].scratch = itemScratch;
     m.records[i].cost = itemCost;
@@ -805,12 +800,14 @@ function renderMDRent() {
     tbody.innerHTML = ''; document.getElementById('no-rent').style.display = 'block'; return;
   }
   document.getElementById('no-rent').style.display = 'none';
+  
+  // 🛠️ 這裡租金區間列表的刪除按鈕也同步換成小圖示叉叉 ti-x
   tbody.innerHTML = m.rents.map((r, i) => {
     var s = new Date(r.start + 'T00:00:00'), e = new Date(r.end + 'T00:00:00');
     var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
     var pTxt = r.period === 'monthly' ? '月繳' : r.period === 'quarterly' ? '季繳' : r.period === 'halfyear' ? '半年繳' : r.period === 'yearly' ? '年繳' : '自訂';
     return '<tr><td>' + r.start.slice(5) + '</td><td>' + r.end.slice(5) + '</td><td>$' + r.amount + '</td><td>' + totalDays + ' 天</td><td>' + pTxt + '</td><td>' + (r.note || '') + '</td>' +
-           '<td><button onclick="delRent(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
+           '<td><button onclick="delRent(' + i + ')" class="ghost" style="color:var(--red);padding:4px 6px;font-size:14px;"><i class="ti ti-x"></i></button></td></tr>';
   }).join('');
 }
 
@@ -953,9 +950,11 @@ function renderPrizes() {
                     '<div class="st"><div class="lb">庫存總成本</div><div class="vl">$' + tc.toLocaleString() + '</div></div>';
   grid.innerHTML = window.DB.prizes.map((p, i) => {
     var imgHtml = p.img ? '<img src="' + p.img + '" class="pi">' : '<div class="pph"><i class="ti ti-gift"></i></div>';
+    
+    // 🛠️ 庫存卡片右上角的刪除按鈕本來就是叉叉（pdel），這裡保持原樣
     return '<div class="pc">' + imgHtml + 
            '<button class="pedit" onclick="openEditPrize(' + i + ')"><i class="ti ti-edit"></i></button>' +
-           '<button class="pdel" onclick="delPrize(' + i + ')"><i class="ti ti-trash"></i></button>' +
+           '<button class="pdel" onclick="delPrize(' + i + ')"><i class="ti ti-x"></i></button>' +
            '<div class="pinfo"><div style="font-weight:600;font-size:14px;margin-bottom:2px">' + p.name + '</div>' +
            '<div style="font-size:11px;color:var(--text3)">成本：$' + p.cost + ' | 剩餘：' + p.qty + '</div>' +
            (p.note ? '<div style="font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.note + '</div>' : '') +
@@ -1139,9 +1138,11 @@ function addOthItem() {
 }
 function renderCatItems() {
   var c = gc(); var tbody = document.getElementById('oth-tb'); if (!c.items) c.items = [];
+  
+  // 🛠️ 其他成本明細列表的刪除按鈕也同步換成小圖示叉叉 ti-x
   tbody.innerHTML = c.items.map((item, i) => {
     return '<tr><td>' + item.date + '</td><td>' + (item.type === 'buy' ? '支出' : '收入') + '</td><td>$' + item.amount + '</td><td>' + item.note + '</td>' +
-           '<td><button onclick="delOthItem(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
+           '<td><button onclick="delOthItem(' + i + ')" class="ghost" style="color:var(--red);padding:4px 6px;font-size:14px;"><i class="ti ti-x"></i></button></td></tr>';
   }).join('');
 }
 function delOthItem(i) { gc().items.splice(i, 1); window.save(); renderCatItems(); }
