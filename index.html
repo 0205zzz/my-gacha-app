@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端一鍵登入版 v18</title>
+<title>娃娃機記帳 - 雲端一鍵登入版 v19</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -377,7 +377,6 @@ const firebaseConfig = {
     messagingSenderId: "630194612465",
     appId: "1:630194612465:web:ee860259a9ebbb30286150"
   };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -669,6 +668,7 @@ function delMachine() {
   }
 }
 
+// 🛠️ Bug 修正點：防堵備註在表格渲染時格式崩壞或沒顯示
 function renderMDRec() {
   var m = gm(), tbody = document.getElementById('rec-tb'), h = document.getElementById('th-rec-head');
   if (!m.records || m.records.length === 0) {
@@ -676,16 +676,19 @@ function renderMDRec() {
   }
   document.getElementById('no-rec').style.display = 'none';
   var isCoin = m.recordType === 'coin';
-  h.innerHTML = isCoin ? '<th>日期</th><th>總幣表</th><th>淨增</th><th>賣刮</th><th>總收入</th><th>成本</th><th>備註</th><th></th>' 
-                       : '<th>日期</th><th>實收</th><th>賣刮</th><th>總收入</th><th>成本</th><th>備註</th><th></th>';
+  h.innerHTML = isCoin ? '<th>日期</th><th>總幣表</th><th>淨增</th><th>賣刮</th><th>總收入</th><th>成本</th><th>備註說明</th><th></th>' 
+                       : '<th>日期</th><th>實收</th><th>賣刮</th><th>總收入</th><th>成本</th><th>備註說明</th><th></th>';
   tbody.innerHTML = m.records.map((r, i) => {
     var scratch = r.scratch || 0;
-    var noteStr = r.note || '';
+    // 強制轉換備註格式，避免未定義或怪異字串格式
+    var noteStr = (r.note !== undefined && r.note !== null) ? String(r.note) : '';
+    var displayNote = noteStr ? '<span style="color:var(--text);font-size:12px;display:inline-block;max-width:140px;white-space:normal;word-break:break-all;">' + noteStr + '</span>' : '-';
+
     return isCoin ?
-      '<tr><td>' + r.date + '</td><td>' + (r.meter || 0) + '</td><td>' + (r.diff || 0) + '</td><td>$' + scratch + '</td><td><strong>$' + r.income + '</strong></td><td>$' + (r.cost || 0) + '</td><td>' + noteStr + '</td>' +
-      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>' :
-      '<tr><td>' + r.date + '</td><td>$' + (r.amount || 0) + '</td><td>$' + scratch + '</td><td><strong>$' + r.income + '</strong></td><td>$' + (r.cost || 0) + '</td><td>' + noteStr + '</td>' +
-      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red)"><i class="ti ti-trash"></i></button></td></tr>';
+      '<tr><td>' + r.date + '</td><td>' + (r.meter || 0) + '</td><td>' + (r.diff || 0) + '</td><td>$' + scratch + '</td><td><strong>$' + r.income + '</strong></td><td>$' + (r.cost || 0) + '</td><td>' + displayNote + '</td>' +
+      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red);padding:2px 6px;"><i class="ti ti-trash"></i></button></td></tr>' :
+      '<tr><td>' + r.date + '</td><td>$' + (r.amount || 0) + '</td><td>$' + scratch + '</td><td><strong>$' + r.income + '</strong></td><td>$' + (r.cost || 0) + '</td><td>' + displayNote + '</td>' +
+      '<td><button onclick="delRec(' + i + ')" class="ghost" style="color:var(--red);padding:2px 6px;"><i class="ti ti-trash"></i></button></td></tr>';
   }).join('');
 }
 
@@ -713,7 +716,6 @@ function openAddRec() {
   openSheet(formHtml);
 }
 
-// 🛠️ Bug 修正點：重新計算歷史的迴圈中，必須保留完整的備註、刮刮樂與成本物件
 function doAddRec() {
   var m = gm(), d = document.getElementById('rd').value;
   var c = parseInt(document.getElementById('rc').value) || 0;
@@ -738,38 +740,55 @@ function doAddRec() {
   m.records.unshift(rec);
   m.records.sort((a,b) => b.date.localeCompare(a.date));
   
-  if (m.recordType === 'coin') {
-    var currentBase = m.initialMeter || 0;
-    for(var i = m.records.length - 1; i >= 0; i--) {
+  // 核心對齊：不管是投幣數模式還是實收模式，所有歷史紀錄在重算時都要確保原有 note、scratch 物件不會丢失
+  var currentBase = m.initialMeter || 0;
+  for(var i = m.records.length - 1; i >= 0; i--) {
+    var itemScratch = m.records[i].scratch || 0;
+    var itemNote = m.records[i].note || '';
+    var itemCost = m.records[i].cost || 0;
+    
+    if (m.recordType === 'coin') {
       var dff = m.records[i].meter - currentBase;
       if (dff < 0) dff = 0;
       m.records[i].diff = dff;
-      // 🛠️ 關鍵修正：必須重新指定舊有紀錄的 scratch 與原有值，不可覆蓋成 undefined
-      var itemScratch = m.records[i].scratch || 0;
       m.records[i].income = (dff * 10) + itemScratch;
       currentBase = m.records[i].meter;
+    } else {
+      m.records[i].income = (m.records[i].amount || 0) + itemScratch;
     }
+    
+    m.records[i].note = itemNote;
+    m.records[i].scratch = itemScratch;
+    m.records[i].cost = itemCost;
   }
 
   window.save(); renderMDStats(); renderMDRec(); closeSheet();
 }
 
-// 🛠️ Bug 修正點：刪除紀錄時的重算歷史，也要完整保留 note 與 scratch
 function delRec(i) {
   if (confirm('確定刪除此紀錄？')) {
     var m = gm();
     m.records.splice(i, 1);
-    if (m.recordType === 'coin') {
-      var currentBase = m.initialMeter || 0;
-      for(var j = m.records.length - 1; j >= 0; j--) {
+    
+    var currentBase = m.initialMeter || 0;
+    for(var j = m.records.length - 1; j >= 0; j--) {
+      var itemScratch = m.records[j].scratch || 0;
+      var itemNote = m.records[j].note || '';
+      var itemCost = m.records[j].cost || 0;
+      
+      if (m.recordType === 'coin') {
         var dff = m.records[j].meter - currentBase;
         if (dff < 0) dff = 0;
         m.records[j].diff = dff;
-        // 🛠️ 關鍵修正：刪除時重算也必須保留舊有的 scratch 
-        var itemScratch = m.records[j].scratch || 0;
         m.records[j].income = (dff * 10) + itemScratch;
         currentBase = m.records[j].meter;
+      } else {
+        m.records[j].income = (m.records[j].amount || 0) + itemScratch;
       }
+      
+      m.records[j].note = itemNote;
+      m.records[j].scratch = itemScratch;
+      m.records[j].cost = itemCost;
     }
     window.save(); renderMDStats(); renderMDRec();
   }
@@ -811,7 +830,7 @@ function mdAddRent() {
   if (!start || !end || !amt) return;
   if (!m.rents) m.rents = [];
   m.rents.push({ start: start, end: end, amount: amt, period: p, note: note });
-  m.rents.sort((a,b) => b.start.lambdaCompare(a.start));
+  m.rents.sort((a,b) => b.start.localeCompare(a.start));
   window.save(); renderMDRent();
 }
 function delRent(i) {
@@ -1181,7 +1200,7 @@ function exportExcel() {
   });
   if (window.DB.categories) {
     window.DB.categories.forEach(c => {
-      if (c.items) c.items.forEach(it => { rows.push(["【其他成本】" + c.name, it.date, it.type === 'buy' ? '雜項支出' : '雜項收入', '獨立單筆', 0, it.type === 'sell' ? it.amount : 0, it.type === 'buy' ? it.amount : 0, it.note || '']); });
+      if (c.items) c.items.forEach(it => { push(["【其他成本】" + c.name, it.date, it.type === 'buy' ? '雜項支出' : '雜項收入', '獨立單筆', 0, it.type === 'sell' ? it.amount : 0, it.type === 'buy' ? it.amount : 0, it.note || '']); });
     });
   }
   var wb = XLSX.utils.book_new(); var ws = XLSX.utils.aoa_to_sheet(rows);
