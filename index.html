@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="娃娃機總覽">
+<meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 雲端大容量分流版 </title>
+<title>娃娃機記帳 - 萬筆大容量分流版 v24.1</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -369,26 +369,28 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ⚠️ 貼心提醒：請記得將這裡的配置改換成你在 Firebase Console 複製出來的真實 Config 資料包喔！
 const firebaseConfig = {
-    apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk",
-    authDomain: "my-gacha-app-7514f.firebaseapp.com",
-    projectId: "my-gacha-app-7514f",
-    storageBucket: "my-gacha-app-7514f.firebasestorage.app",
-    messagingSenderId: "630194612465",
-    appId: "1:630194612465:web:ee860259a9ebbb30286150"
-  };
+  apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk4",
+  authDomain: "my-gacha-app-7514f.firebaseapp.com",
+  projectId: "my-gacha-app-7514f",
+  storageBucket: "my-gacha-app-7514f.firebasestorage.app",
+  messagingSenderId: "630194612465",
+  appId: "1:630194612465:web:ee860259a9ebbb30286150"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
-let userUID = null;
 
+// 修正：將變數綁定到 window 全域，讓外部傳統 script 與備份還原可以存取
+window.userUID = null;
 window.DB = { machines: [], prizes: [], categories: [] };
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    userUID = user.uid;
+    window.userUID = user.uid;
     document.getElementById('sync-dot').style.background = "#00c97f";
     document.getElementById('sync-status').innerText = "雲端即時同步中";
     document.getElementById('g-login-area').style.display = "none";
@@ -399,7 +401,7 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('btn-add-m').disabled = false;
     await loadCloudData();
   } else {
-    userUID = null;
+    window.userUID = null;
     window.DB = { machines: [], prizes: [], categories: [] };
     document.getElementById('sync-dot').style.background = "#ff5a47";
     document.getElementById('sync-status').innerText = "請登入 Google 帳號啟用同步";
@@ -418,15 +420,14 @@ window.handleGoogleLogout = function() {
   if(confirm("確定要登出嗎？")) signOut(auth);
 };
 
-// 🛠️ v24 大容量多頻道並行載入技術
 async function loadCloudData() {
-  if (!userUID) return;
+  if (!window.userUID) return;
   try {
     document.getElementById('sync-status').innerText = "雲端資料下載中...";
     
-    const mSnap = await getDocs(collection(db, "users", userUID, "machines"));
-    const pSnap = await getDocs(collection(db, "users", userUID, "prizes"));
-    const cSnap = await getDocs(collection(db, "users", userUID, "categories"));
+    const mSnap = await getDocs(collection(db, "users", window.userUID, "machines"));
+    const pSnap = await getDocs(collection(db, "users", window.userUID, "prizes"));
+    const cSnap = await getDocs(collection(db, "users", window.userUID, "categories"));
     
     window.DB.machines = [];
     mSnap.forEach(doc => window.DB.machines.push(doc.data()));
@@ -444,25 +445,24 @@ async function loadCloudData() {
     window.renderHome();
   } catch (e) {
     console.error("下載失敗:", e);
-    document.getElementById('sync-status').innerText = "連線失敗";
+    document.getElementById('sync-status').innerText = "連線失敗或權限不足";
   }
 }
 
-// 🛠️ v24 精準分流儲存引擎：按項目存取個別文件，永遠不爆
 window.cloudSaveItem = async function(collectionName, itemId, itemData) {
-  if (!userUID) return;
+  if (!window.userUID) return;
   try {
-    await setDoc(doc(db, "users", userUID, collectionName, String(itemId)), itemData);
+    await setDoc(doc(db, "users", window.userUID, collectionName, String(itemId)), itemData);
   } catch(e) {
-    alert("🚨 同步失敗！請檢查網絡連線");
+    alert("🚨 同步失敗！請檢查網路連線或規則設定");
     console.error(e);
   }
 };
 
 window.cloudDeleteItem = async function(collectionName, itemId) {
-  if (!userUID) return;
+  if (!window.userUID) return;
   try {
-    await deleteDoc(doc(db, "users", userUID, collectionName, String(itemId)));
+    await deleteDoc(doc(db, "users", window.userUID, collectionName, String(itemId)));
   } catch(e) {
     console.error(e);
   }
@@ -947,10 +947,10 @@ function doExport() {
   setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
 }
 
-// 🛠️ v24 智能備份還原解構引擎：能吃舊版單一包，並自動打碎分流上傳
+// 修正：修正了還原引擎，現在能正確抓到全域 window.userUID，不再報錯中斷
 function doImport() {
   var file = document.getElementById('import-file').files[0]; if (!file) { alert('請選擇備份檔案'); return; }
-  if (!userUID) { alert('請先登入帳號再執行雲端分流匯入！'); return; }
+  if (!window.userUID) { alert('請先登入帳號再執行雲端分流匯入！'); return; }
   if (!confirm('執行此還原將會將備份資料碎化分流上傳至雲端，是否繼續？')) return;
   var reader = new FileReader();
   reader.onload = async function(evt) {
@@ -958,23 +958,23 @@ function doImport() {
       var parsed = JSON.parse(evt.target.result);
       if (!parsed) throw new Error('資料損毀');
       
-      alert('⚡ 偵測到備份資料！開始執行雲端大量分流解构處理，請勿關閉網頁...');
+      alert('⚡ 偵測到備份資料！開始執行雲端大量分流解構處理，請勿關閉網頁...');
       
-      if (Array.isArray(parsed.machines)) {
+      if (parsed.machines && Array.isArray(parsed.machines)) {
         window.DB.machines = parsed.machines;
         for (let m of parsed.machines) {
           if (!m.id) m.id = Date.now() + Math.floor(Math.random()*1000);
           await window.cloudSaveItem("machines", m.id, m);
         }
       }
-      if (Array.isArray(parsed.prizes)) {
+      if (parsed.prizes && Array.isArray(parsed.prizes)) {
         window.DB.prizes = parsed.prizes;
         for (let p of parsed.prizes) {
           if (!p.id) p.id = Date.now() + Math.floor(Math.random()*1000);
           await window.cloudSaveItem("prizes", p.id, p);
         }
       }
-      if (Array.isArray(parsed.categories)) {
+      if (parsed.categories && Array.isArray(parsed.categories)) {
         window.DB.categories = parsed.categories;
         for (let c of parsed.categories) {
           if (!c.id) c.id = Date.now() + Math.floor(Math.random()*1000);
