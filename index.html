@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 萬筆大容量分流版 v24</title>
+<title>娃娃機記帳 - 大容量分流版 v24</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -370,13 +370,13 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChang
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk4",
-  authDomain: "my-gacha-app-7514f.firebaseapp.com",
-  projectId: "my-gacha-app-7514f",
-  storageBucket: "my-gacha-app-7514f.firebasestorage.app",
-  messagingSenderId: "630194612465",
-  appId: "1:630194612465:web:ee860259a9ebbb30286150"
-};
+    apiKey: "AIzaSyAykiuo908yAQFa-qSoHhNw2LwmPZiiWFk",
+    authDomain: "my-gacha-app-7514f.firebaseapp.com",
+    projectId: "my-gacha-app-7514f",
+    storageBucket: "my-gacha-app-7514f.firebasestorage.app",
+    messagingSenderId: "630194612465",
+    appId: "1:630194612465:web:ee860259a9ebbb30286150"
+  };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
