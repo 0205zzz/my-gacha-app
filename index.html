@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="娃娃機">
 <meta name="theme-color" content="#0a0a0a">
-<title>娃娃機記帳 - 萬筆大容量分流版 </title>
+<title>娃娃機記帳 - 萬筆大容量分流版 v24.1</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -67,7 +67,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 .c3{grid-template-columns:1fr 1fr 1fr}
 .st{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px}
 .st .lb{font-size:11px;color:var(--text3);margin-bottom:3px}
-.st .vl span{font-size:16px;font-weight:600}
+.st .vl{font-size:16px;font-weight:600}
 .pos{color:var(--green-text)}.neg{color:var(--red-text)}
 
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:99px;font-weight:500}
@@ -77,6 +77,7 @@ button.prim{background:var(--green);border-color:var(--green);color:#fff;font-we
 
 .fg{margin-bottom:10px}
 .fg label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px}
+.fg .hint{font-size:11px;color:var(--text3);margin-top:4px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
 
@@ -96,21 +97,50 @@ tr:last-child td{border-bottom:none}
 .sh{background:var(--bg2);border-radius:16px 16px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:20px 16px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
 .shd{display:flex;align-items:center;margin-bottom:16px}
 .shd span{flex:1;font-size:16px;font-weight:600}
+button.ghost{background:transparent;border-color:transparent;color:var(--text3)}
 
-.mg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px;margin-top:8px}
+.mg{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;font-size:12px;margin-top:8px}
+.mc .lb{color:var(--text3);font-size:11px;margin-bottom:2px}
 
 .pg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.pc {background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden;padding:12px}
+.pc {background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);position:relative;overflow:hidden}
+.pi {width:100%;height:110px;object-fit:cover;display:block}
+.pph{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text3);font-size:32px}
+.pdel{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
+.pdel:active{background:var(--red)}
+.pedit{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.85);color:#fff;border:none;font-size:14px;line-height:1;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
+.pedit:active{background:var(--blue)}
+
+.chartw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:90px;overflow-x:auto;padding-bottom:22px}
+.bg2c{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:34px}
+.bp{display:flex;align-items:flex-end;gap:2px}
+.bar{border-radius:3px 3px 0 0;min-height:2px}
+.bi{background:var(--green)}.be{background:var(--red)}
+.bl{font-size:10px;color:var(--text3);text-align:center}
+
+.mb{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+.mhd{font-size:15px;font-weight:600;margin-bottom:10px}
+.orr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.orr:last-child{border-bottom:none}
+.osub{padding:3px 0 3px 12px;display:flex;justify-content:space-between;font-size:12px;color:var(--text3)}
 
 .empty{text-align:center;color:var(--text3);padding:2.5rem 0}
 .empty i{font-size:38px;display:block;margin-bottom:8px}
 
-.sslbl">.sslbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding:0 2px}
+.tgrow{display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px 0;font-size:14px}
+.tgbox{width:22px;height:22px;border:2px solid var(--border2);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg3)}
+.tgbox.on{background:var(--green);border-color:var(--green)}
+.tgbox i{font-size:14px;color:#fff;display:none}
+.tgbox.on i{display:block}
+
+.sslbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding:0 2px}
 .ssec{margin-bottom:18px}
 .thopts{display:flex;gap:8px;margin-top:6px}
 .thopt{flex:1;border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;cursor:pointer;font-size:12px;font-weight:500}
 .thopt.on{border-color:var(--green);color:var(--green)}
 .thsw{width:28px;height:28px;border-radius:50%;margin:0 auto 6px;border:2px solid var(--border)}
+.rphint{font-size:12px;color:var(--text3);margin-top:5px}
 
 .g-user-box{display:flex;align-items:center;gap:12px;margin-top:10px}
 .g-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg4)}
@@ -118,6 +148,11 @@ tr:last-child td{border-bottom:none}
 .setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px}
 .setting-row:last-child{border-bottom:none}
 .sr-label{font-size:14px;font-weight:500}
+.sr-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+.search-box-w {margin-bottom: 12px; position: relative; display: flex; align-items: center;}
+.search-box-w i {position: absolute; left: 12px; color: var(--text3); font-size: 16px;}
+.search-box-w input {padding-left: 34px;}
 </style>
 </head>
 <body>
@@ -126,51 +161,70 @@ tr:last-child td{border-bottom:none}
 
     <div id="p-machines" class="page on">
       <div class="topbar"><h2><i class="ti ti-crane"></i> 娃娃機</h2>
-        <button id="btn-add-m" onclick="openAddMachine()" disabled><i class="ti ti-plus"></i> 新增機台</button>
+        <button id="btn-add-m" onclick="openAddMachine()" disabled><i class="ti ti-plus"></i> 新增</button>
       </div>
       <div id="home-stats" class="sg c3"></div>
+      <div id="home-chart" class="chartw" style="display:none">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">每月收支（已含分攤租金）</div>
+        <div class="bars" id="bar-chart"></div>
+        <div style="display:flex;gap:12px;font-size:11px;color:var(--text3);margin-top:4px">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:4px;vertical-align:middle"></span>收入</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--red);margin-right:4px;vertical-align:middle"></span>成本+租金</span>
+        </div>
+      </div>
       <div id="machine-list"><div class="empty"><i class="ti ti-lock"></i>請先到「設定」登入 Google 帳號</div></div>
-      <div id="empty-home" class="empty" style="display:none"><i class="ti ti-crane"></i>還沒有機台</div>
+      <div id="empty-home" class="empty" style="display:none"><i class="ti ti-crane"></i>還沒有機台<br><span style="font-size:13px">點右上角新增</span></div>
     </div>
 
     <div id="p-monthly" class="page">
-      <div class="topbar"><h2><i class="ti ti-calendar-stats"></i> 月報表</h2></div>
+      <div class="topbar"><h2><i class="ti ti-calendar-stats"></i> 月報表</h2>
+        <button onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> 匯出</button>
+      </div>
+      <div class="search-box-w">
+        <i class="ti ti-search"></i>
+        <input type="text" id="monthly-search" placeholder="搜尋年份、月份或機台名稱..." oninput="renderMonthly()">
+      </div>
       <div id="monthly-content"></div>
     </div>
 
     <div id="p-prizes" class="page">
       <div class="topbar"><h2><i class="ti ti-gift"></i> 獎品庫存</h2>
-        <button onclick="showAddPrize()"><i class="ti ti-plus"></i> 新增獎品</button>
+        <button onclick="showAddPrize()"><i class="ti ti-plus"></i> 新增</button>
       </div>
       <div id="prize-stats" class="sg c2"></div>
-      
       <div id="prize-add-form" class="fcard" style="display:none">
         <div id="pz-form-title" style="font-size:14px;font-weight:600;margin-bottom:12px">新增獎品</div>
-        <div class="fg"><label for="pz-name">獎品名稱</label><input type="text" id="pz-name"></div>
+        <input type="hidden" id="pz-edit-index" value="-1">
+        <div class="fg"><label>獎品名稱</label><input type="text" id="pz-name" placeholder="例：A賞"></div>
         <div class="fg2">
-          <div class="fg"><label for="pz-cost">成本</label><input type="number" id="pz-cost"></div>
-          <div class="fg"><label for="pz-qty">數量</label><input type="number" id="pz-qty" value="1"></div>
+          <div class="fg"><label>成本（元）</label><input type="number" id="pz-cost" placeholder="500"></div>
+          <div class="fg"><label>數量</label><input type="number" id="pz-qty" value="1"></div>
         </div>
-        <div class="fg"><label for="pz-note">備註說明</label><input type="text" id="pz-note"></div>
+        <div class="fg"><label>備註</label><input type="text" id="pz-note" placeholder="選填"></div>
+        <div class="fg" id="pz-img-container"><label>照片（選填）</label><input type="file" id="pz-img" accept="image/*"></div>
         <div style="display:flex;gap:8px">
-          <button class="prim" onclick="savePrize()">儲存</button>
+          <button id="pz-btn-submit" class="prim" onclick="savePrize()"><i class="ti ti-check"></i> 新增</button>
           <button onclick="cancelPrizeForm()">取消</button>
         </div>
       </div>
       <div class="pg" id="prize-grid"></div>
+      <div id="empty-prizes" class="empty" style="display:none"><i class="ti ti-gift"></i>還沒擺放庫存</div>
     </div>
 
     <div id="p-other" class="page">
       <div class="topbar"><h2><i class="ti ti-receipt"></i> 其他成本</h2>
-        <button onclick="openAddCat()"><i class="ti ti-plus"></i> 新增類別</button>
+        <button onclick="openAddCat()"><i class="ti ti-plus"></i> 類別</button>
       </div>
+      <div id="other-monthly-summary"></div>
       <div id="other-list"></div>
+      <div id="empty-other" class="empty" style="display:none"><i class="ti ti-receipt"></i>還沒有類別</div>
     </div>
 
     <div id="p-settings" class="page">
       <div class="topbar"><h2><i class="ti ti-settings"></i> 設定</h2></div>
+      
       <div class="ssec">
-        <div class="sslbl">Google 帳號聯動</div>
+        <div class="sslbl">Google 帳號聯動 (雲端大容量版)</div>
         <div class="card">
           <div style="font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px">
             <span id="sync-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5a47"></span>
@@ -181,7 +235,7 @@ tr:last-child td{border-bottom:none}
           </div>
           <div id="g-user-area" style="display:none">
             <div class="g-user-box">
-              <img id="user-img" class="g-avatar" src="" alt="頭像">
+              <img id="user-img" class="g-avatar" src="" alt="">
               <div class="g-info">
                 <div id="user-name" style="font-weight:600">載入中...</div>
                 <div id="user-email" style="font-size:11px;color:var(--text2)">載入中...</div>
@@ -191,67 +245,110 @@ tr:last-child td{border-bottom:none}
           </div>
         </div>
       </div>
-      
+
       <div class="ssec">
         <div class="sslbl">外觀</div>
         <div class="card">
+          <div style="font-size:14px;font-weight:500;margin-bottom:8px">背景顏色</div>
           <div class="thopts">
             <div class="thopt on" id="th-dark" onclick="setTheme('dark')"><div class="thsw" style="background:#0f0f0f"></div>深色</div>
-            <div class="thopt" id="th-light" onclick="setTheme('light')"><div class="thsw" style="background:#f4f3ee"></div>淺色</div>
+            <div class="thopt" id="th-light" onclick="setTheme('light')"><div class="thsw" style="background:#f4f3ee;border-color:#ccc"></div>淺色</div>
           </div>
         </div>
       </div>
-    </div>
 
+      <div class="ssec">
+        <div class="sslbl">數據管理</div>
+        <div class="card">
+          <div class="setting-row">
+            <div><div class="sr-label">匯出 JSON 備份</div><div class="sr-sub">下載本地文字檔備份</div></div>
+            <button class="prim" onclick="doExport()"><i class="ti ti-download"></i> 匯出</button>
+          </div>
+          <div class="setting-row">
+            <div><div class="sr-label">匯入 JSON 還原</div><div class="sr-sub">將之前的舊資料（或備份檔）分流存入新版雲端</div></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <input type="file" id="import-file" accept=".json" style="font-size:11px;padding:4px;width:150px">
+              <button onclick="doImport()"><i class="ti ti-upload"></i> 還原</button>
+            </div>
+          </div>
+          <div class="setting-row" style="border-top:1px dashed var(--border); margin-top:10px; padding-top:14px">
+            <div><div class="sr-label" style="color:var(--red-text)">清空所有資料</div><div class="sr-sub">清空雲端與本地全部記帳、機台與庫存</div></div>
+            <button onclick="clearAllData()" style="border-color:var(--red); color:#fff; background:var(--red)"><i class="ti ti-trash"></i> 一鍵刪除</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <div id="sub-machine" class="sub">
     <div class="topbar">
       <button class="back" onclick="closeSub('sub-machine');renderHome()"><i class="ti ti-arrow-left"></i> 返回</button>
       <h2 id="md-title" style="margin-left:8px;flex:1">機台詳情</h2>
-      <button onclick="delMachine()" style="color:var(--red-text);border:none;background:none"><i class="ti ti-trash"></i> 刪除機台</button>
+      <button onclick="openEditMachine()" style="font-size:13px"><i class="ti ti-edit"></i> 修改</button>
+      <button onclick="delMachine()" style="font-size:13px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i> 刪除</button>
     </div>
     <div id="md-stats" class="sg c2"></div>
     <div class="tabs">
       <button class="tab on" id="t-rec" onclick="setMDTab('rec')">抄表紀錄</button>
       <button class="tab" id="t-rent" onclick="setMDTab('rent')">租金設定</button>
     </div>
-    
     <div id="tab-rec-content">
-      <button class="prim" onclick="openAddRec()" style="width:100%;justify-content:center;margin-bottom:12px"><i class="ti ti-plus"></i> 新增抄表紀錄</button>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="prim" onclick="openAddRec()" style="flex:1;justify-content:center"><i class="ti ti-plus"></i> 新增抄表紀錄</button>
+      </div>
       <div class="tw"><table><thead><tr id="th-rec-head"></tr></thead><tbody id="rec-tb"></tbody></table></div>
+      <div id="no-rec" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-notes-off" style="font-size:28px"></i>尚無紀錄</div>
     </div>
-    
     <div id="tab-rent-content" style="display:none">
       <div class="fcard">
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增租金區間</div>
         <div class="fg2">
-          <div class="fg"><label for="rs">起始日期</label><input type="date" id="rs"></div>
-          <div class="fg"><label for="re">結束日期</label><input type="date" id="re"></div>
+          <div class="fg"><label>起始日期</label><input type="date" id="rs"></div>
+          <div class="fg"><label>結束日期</label><input type="date" id="re"></div>
         </div>
         <div class="fg2">
-          <div class="fg"><label for="ra">總金額</label><input type="number" id="ra"></div>
-          <div class="fg"><label for="rn">租金備註</label><input type="text" id="rn"></div>
+          <div class="fg"><label>總金額（元）</label><input type="number" id="ra" placeholder="5000" oninput="rpv()"></div>
+          <div class="fg"><label>繳費方式</label>
+            <select id="rp"><option value="monthly">月繳</option><option value="quarterly">季繳</option><option value="halfyear">半年繳</option><option value="yearly">年繳</option><option value="custom">自訂</option></select>
+          </div>
         </div>
-        <button class="prim" onclick="mdAddRent()" style="width:100%;justify-content:center;margin-top:8px">確認新增租金</button>
+        <div class="fg"><label>備註</label><input type="text" id="rn" placeholder="例：降租"></div>
+        <div class="rphint" id="rpv-txt"></div>
+        <button class="prim" onclick="mdAddRent()" style="width:100%;justify-content:center;margin-top:8px">新增租金</button>
       </div>
-      <div class="tw"><table><thead><tr><th>起始日期</th><th>結束日期</th><th>金額</th><th>備註</th></tr></thead><tbody id="rent-tb"></tbody></table></div>
+      <div class="tgrow" onclick="toggleInactive()">
+        <div class="tgbox" id="tg-inactive"><i class="ti ti-check"></i></div>
+        <div>
+          <div>標記此機台為已退租（停用）</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">停用後排到列表最下方</div>
+        </div>
+      </div>
+      <div class="tw"><table><thead><tr><th>起始</th><th>結束</th><th>總金額</th><th>天數</th><th>方式</th><th>備註</th><th></th></tr></thead><tbody id="rent-tb"></tbody></table></div>
+      <div id="no-rent" class="empty" style="padding:2rem 0;display:none"><i class="ti ti-home-off" style="font-size:28px"></i>尚無租金</div>
     </div>
   </div>
 
   <div id="sub-other" class="sub">
     <div class="topbar">
       <button class="back" onclick="closeSub('sub-other');renderOther()"><i class="ti ti-arrow-left"></i> 返回</button>
-      <h2 id="oth-title" style="margin-left:8px;flex:1">類別明細</h2>
+      <h2 id="oth-title" style="margin-left:8px;flex:1">類別</h2>
+      <button onclick="openEditCat()" style="font-size:13px"><i class="ti ti-edit"></i> 編輯</button>
+      <button onclick="delCat()" style="font-size:13px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i> 刪除</button>
     </div>
     <div class="fcard">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px">記一筆帳目</div>
       <div class="fg2">
-        <div class="fg"><label for="od">日期</label><input type="date" id="od"></div>
-        <div class="fg"><label for="oa">金額</label><input type="number" id="oa"></div>
+        <div class="fg"><label>日期</label><input type="date" id="od"></div>
+        <div class="fg"><label>類型</label><select id="ot"><option value="buy">支出</option><option value="sell">收入</option></select></div>
       </div>
-      <div class="fg"><label for="on">項目說明</label><input type="text" id="on"></div>
-      <button class="prim" onclick="addOthItem()" style="width:100%;justify-content:center;margin-top:6px">確認新增明細</button>
+      <div class="fg2">
+        <div class="fg"><label>金額（元）</label><input type="number" id="oa" placeholder="100"></div>
+        <div class="fg"><label>項目說明</label><input type="text" id="on" placeholder="說明文字"></div>
+      </div>
+      <button class="prim" onclick="addOthItem()" style="width:100%;justify-content:center;margin-top:6px">確認新增</button>
     </div>
-    <div class="tw"><table><thead><tr><th>日期</th><th>金額</th><th>項目說明</th><th>操作</th></tr></thead><tbody id="oth-tb"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>日期</th><th>類型</th><th>金額</th><th>備註</th><th></th></tr></thead><tbody id="oth-tb"></tbody></table></div>
   </div>
 
   <div class="nav">
@@ -263,12 +360,9 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<div class="sbg" id="sheet" onclick="if(event.target===this)closeSheet()"><div class="sh" id="sheet-content"></div></div>
-
-<script>
-window.userUID = null;
-window.DB = { machines: [], prizes: [], categories: [] };
-</script>
+<div class="sbg" id="sheet" onclick="if(event.target===this)closeSheet()">
+  <div class="sh" id="sheet-content"></div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -284,248 +378,830 @@ const firebaseConfig = {
     appId: "1:630194612465:web:ee860259a9ebbb30286150"
   };
 
-try {
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      window.userUID = user.uid;
-      document.getElementById('sync-dot').style.background = "#00c97f";
-      document.getElementById('sync-status').innerText = "雲端即時同步中";
-      document.getElementById('g-login-area').style.display = "none";
-      document.getElementById('g-user-area').style.display = "block";
-      document.getElementById('user-name').innerText = user.displayName || "用戶";
-      document.getElementById('user-email').innerText = user.email;
-      document.getElementById('user-img').src = user.photoURL || "";
-      document.getElementById('btn-add-m').disabled = false;
-      await loadCloudData(db);
-    } else {
-      window.userUID = null;
-      document.getElementById('sync-dot').style.background = "#ff5a47";
-      document.getElementById('sync-status').innerText = "請登入帳號";
-      document.getElementById('g-login-area').style.display = "block";
-      document.getElementById('g-user-area').style.display = "none";
-      document.getElementById('btn-add-m').disabled = true;
-    }
-  });
+window.userUID = null;
+window.DB = { machines: [], prizes: [], categories: [] };
 
-  window.handleGoogleLogin = () => signInWithPopup(auth, provider).catch(e => alert("登入失敗: " + e.message));
-  window.handleGoogleLogout = () => { if(confirm("確定登出？")) signOut(auth); };
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    window.userUID = user.uid;
+    document.getElementById('sync-dot').style.background = "#00c97f";
+    document.getElementById('sync-status').innerText = "雲端即時同步中";
+    document.getElementById('g-login-area').style.display = "none";
+    document.getElementById('g-user-area').style.display = "block";
+    document.getElementById('user-name').innerText = user.displayName || "Google 用戶";
+    document.getElementById('user-email').innerText = user.email;
+    document.getElementById('user-img').src = user.photoURL || "";
+    document.getElementById('btn-add-m').disabled = false;
+    await loadCloudData();
+  } else {
+    window.userUID = null;
+    window.DB = { machines: [], prizes: [], categories: [] };
+    document.getElementById('sync-dot').style.background = "#ff5a47";
+    document.getElementById('sync-status').innerText = "請登入 Google 帳號啟用同步";
+    document.getElementById('g-login-area').style.display = "block";
+    document.getElementById('g-user-area').style.display = "none";
+    document.getElementById('btn-add-m').disabled = true;
+    document.getElementById('machine-list').innerHTML = '<div class="empty"><i class="ti ti-lock" style="font-size:32px;display:block;margin-bottom:8px"></i>請先到「設定」頁面<br>登入 Google 帳號以讀取雲端資料</div>';
+  }
+});
 
-  window.cloudSaveItem = async (col, id, data) => {
-    if (!window.userUID) return;
-    await setDoc(doc(db, "users", window.userUID, col, String(id)), data);
-  };
-  window.cloudDeleteItem = async (col, id) => {
-    if (!window.userUID) return;
-    await deleteDoc(doc(db, "users", window.userUID, col, String(id)));
-  };
-} catch(e) { console.error("Firebase 初始化失敗", e); }
+window.handleGoogleLogin = function() {
+  signInWithPopup(auth, provider).catch((e) => alert("登入失敗：" + e.message));
+};
 
-async function loadCloudData(db) {
+window.handleGoogleLogout = function() {
+  if(confirm("確定要登出嗎？")) signOut(auth);
+};
+
+async function loadCloudData() {
+  if (!window.userUID) return;
   try {
+    document.getElementById('sync-status').innerText = "雲端資料下載中...";
     const mSnap = await getDocs(collection(db, "users", window.userUID, "machines"));
-    window.DB.machines = []; mSnap.forEach(d => window.DB.machines.push(d.data()));
-    window.DB.machines.sort((a,b)=>b.id-a.id);
-
     const pSnap = await getDocs(collection(db, "users", window.userUID, "prizes"));
-    window.DB.prizes = []; pSnap.forEach(d => window.DB.prizes.push(d.data()));
-
     const cSnap = await getDocs(collection(db, "users", window.userUID, "categories"));
-    window.DB.categories = []; cSnap.forEach(d => window.DB.categories.push(d.data()));
+    
+    window.DB.machines = [];
+    mSnap.forEach(doc => window.DB.machines.push(doc.data()));
+    window.DB.machines.sort((a,b) => b.id - a.id);
 
+    window.DB.prizes = [];
+    pSnap.forEach(doc => window.DB.prizes.push(doc.data()));
+    window.DB.prizes.sort((a,b) => b.id - a.id);
+
+    window.DB.categories = [];
+    cSnap.forEach(doc => window.DB.categories.push(doc.data()));
+    window.DB.categories.sort((a,b) => b.id - a.id);
+
+    document.getElementById('sync-status').innerText = "雲端即時同步中";
     window.renderHome();
-  } catch(e) { console.error(e); }
+  } catch (e) {
+    console.error("下載失敗:", e);
+    document.getElementById('sync-status').innerText = "連線失敗或權限不足";
+  }
 }
+
+window.cloudSaveItem = async function(collectionName, itemId, itemData) {
+  if (!window.userUID) return;
+  try {
+    await setDoc(doc(db, "users", window.userUID, collectionName, String(itemId)), itemData);
+  } catch(e) {
+    alert("🚨 同步失敗！請檢查網路連線或規則設定");
+    console.error(e);
+  }
+};
+
+window.cloudDeleteItem = async function(collectionName, itemId) {
+  if (!window.userUID) return;
+  try {
+    await deleteDoc(doc(db, "users", window.userUID, collectionName, String(itemId)));
+  } catch(e) {
+    console.error(e);
+  }
+};
 </script>
 
 <script>
 var curMId = null, curCId = null;
 
-function navTo(p) {
-  document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
-  document.querySelectorAll('.nb').forEach(x => x.classList.remove('on'));
-  document.getElementById(p).classList.add('on');
-  document.getElementById('b-' + p.replace('p-', '')).classList.add('on');
-  if(p==='p-machines') renderHome();
-  if(p==='p-prizes') renderPrizes();
-  if(p==='p-other') renderOther();
-  if(p==='p-monthly') renderMonthly();
+function navTo(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById(pageId).classList.add('on');
+  document.getElementById('b-' + pageId.replace('p-', '')).classList.add('on');
+  closeAllSubs();
+  if (pageId === 'p-machines') renderHome();
+  if (pageId === 'p-monthly') { document.getElementById('monthly-search').value = ''; renderMonthly(); }
+  if (pageId === 'p-prizes') renderPrizes();
+  if (pageId === 'p-other') renderOther();
 }
 
-function openSheet(h) { document.getElementById('sheet-content').innerHTML = h; document.getElementById('sheet').classList.add('on'); }
-function closeSheet() { document.getElementById('sheet').classList.remove('on'); }
+function closeAllSubs() { document.querySelectorAll('.sub').forEach(s => s.classList.remove('on')); }
+function openSub(id) { closeAllSubs(); document.getElementById(id).classList.add('on'); }
 function closeSub(id) { document.getElementById(id).classList.remove('on'); }
-function setTheme(t) { document.body.className = t; document.querySelectorAll('.thopt').forEach(x=>x.classList.remove('on')); document.getElementById('th-'+t).classList.add('on'); }
+function openSheet(html) { document.getElementById('sheet-content').innerHTML = html; document.getElementById('sheet').classList.add('on'); }
+function closeSheet() { document.getElementById('sheet').classList.remove('on'); }
 
-function gm() { return window.DB.machines.find(m => m.id === curMId); }
-function gc() { return window.DB.categories.find(c => c.id === curCId); }
+function setTheme(t) {
+  document.body.className = t;
+  document.querySelectorAll('.thopt').forEach(o => o.classList.remove('on'));
+  document.getElementById('th-' + t).classList.add('on');
+  try { localStorage.setItem('gachaTheme', t); } catch(e){}
+}
+(function(){
+  var t = 'dark';
+  try { t = localStorage.getItem('gachaTheme') || 'dark'; } catch(e){}
+  setTheme(t);
+})();
+
+function gm(){ return window.DB.machines.find(m => m.id === curMId); }
+function gc(){ return window.DB.categories.find(c => c.id === curCId); }
 
 function calcS(m) {
   var inc = 0, cost = 0, rent = 0;
-  if(m.records) m.records.forEach(r => { inc += parseInt(r.income)||0; cost += parseInt(r.cost)||0; });
-  if(m.rents) m.rents.forEach(rt => { rent += parseInt(rt.amount)||0; });
-  return { inc: inc, cost: cost, rent: rent, p: inc - cost - rent };
+  if(m.records) {
+    m.records.forEach(r => { inc += r.income; cost += (r.cost || 0); });
+  }
+  if (m.rents) {
+    m.rents.forEach(rentItem => {
+      var s = new Date(rentItem.start + 'T00:00:00'), e = new Date(rentItem.end + 'T00:00:00');
+      var totalDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+      if (totalDays > 0) rent += rentItem.amount;
+    });
+  }
+  return { inc: inc, cost: cost, rent: rent, pnr: inc - cost, p: inc - cost - rent };
 }
 
-// 1. 首頁渲染與新增
 function renderHome() {
-  var sts = document.getElementById('home-stats'), list = document.getElementById('machine-list'), emp = document.getElementById('empty-home');
-  if(!window.DB.machines || window.DB.machines.length === 0) { list.innerHTML=''; sts.innerHTML=''; emp.style.display='block'; return; }
-  emp.style.display='none';
-  var tI=0, tC=0, tR=0;
-  window.DB.machines.forEach(m => { var s = calcS(m); tI+=s.inc; tC+=s.cost; tR+=s.rent; });
-  sts.innerHTML = '<div class="st"><div class="lb">總收入</div><div class="vl"><span class="pos">$' + tI.toLocaleString() + '</span></div></div>' +
-                  '<div class="st"><div class="lb">總成本</div><div class="vl"><span class="neg">$' + tC.toLocaleString() + '</span></div></div>' +
-                  '<div class="st"><div class="lb">實賺利潤</div><div class="vl"><span>$' + (tI-tC-tR).toLocaleString() + '</span></div></div>';
-  list.innerHTML = window.DB.machines.map(m => {
+  var sts = document.getElementById('home-stats');
+  var list = document.getElementById('machine-list');
+  var empty = document.getElementById('empty-home');
+  if (!window.DB || !window.DB.machines || window.DB.machines.length === 0) {
+    sts.innerHTML = ''; list.innerHTML = ''; document.getElementById('home-chart').style.display = 'none';
+    if(document.getElementById('btn-add-m').disabled) empty.style.display = 'none'; else empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  var tI = 0, tC = 0, tR = 0;
+  window.DB.machines.forEach(m => { var s = calcS(m); tI += s.inc; tC += s.cost; tR += s.rent; });
+  var tp = tI - tC - tR;
+  sts.innerHTML = '<div class="st"><div class="lb">總收入</div><div class="vl">$' + tI.toLocaleString() + '</div></div>' +
+                  '<div class="st"><div class="lb">總成本</div><div class="vl">$' + tC.toLocaleString() + '</div></div>' +
+                  '<div class="st"><div class="lb">扣租後</div><div class="vl ' + (tp >= 0 ? 'pos' : 'neg') + '">$' + tp.toLocaleString() + '</div></div>';
+  var active = window.DB.machines.filter(m => !m.inactive);
+  var inactive = window.DB.machines.filter(m => m.inactive);
+  list.innerHTML = active.concat(inactive).map(m => {
     var s = calcS(m);
-    return '<div class="card tap" onclick="openMD(' + m.id + ')"><div style="font-weight:600">' + m.name + '</div>' +
-           '<div class="mg"><div>收入: $' + s.inc + '</div><div>成本: $' + s.cost + '</div><div>利潤: $' + s.p + '</div></div></div>';
+    var tTag = m.recordType ? ('<span class="tag ' + (m.recordType === 'coin' ? 'tc' : 'ta') + '">' + (m.recordType === 'coin' ? '幣表' : '幣量') + '</span>') : '';
+    var iTag = m.inactive ? '<span class="tag toff">退租</span>' : '';
+    return '<div class="card tap" onclick="openMD(' + m.id + ')">' +
+           '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">' +
+           '<span style="font-weight:600;font-size:15px">' + m.name + '</span>' + tTag + iTag + '</div>' +
+           '<div class="mg">' +
+           '<div class="mc"><div class="lb">收入</div><div>$' + s.inc.toLocaleString() + '</div></div>' +
+           '<div class="mc"><div class="lb">成本</div><div>$' + s.cost.toLocaleString() + '</div></div>' +
+           '<div class="mc"><div class="lb">未扣租</div><div class="' + (s.pnr >= 0 ? 'pos' : 'neg') + '">$' + s.pnr.toLocaleString() + '</div></div>' +
+           '<div class="mc"><div class="lb">扣租後</div><div class="' + (s.p >= 0 ? 'pos' : 'neg') + '">$' + s.p.toLocaleString() + '</div></div>' +
+           '</div></div>';
+  }).join('');
+  renderChart();
+}
+
+function renderChart() {
+  var cw = document.getElementById('home-chart');
+  var mm = {};
+  if(!window.DB || !window.DB.machines) return;
+  window.DB.machines.forEach(m => {
+    if(m.records) {
+      m.records.forEach(r => {
+        var ym = r.date.slice(0, 7);
+        if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
+        mm[ym].inc += r.income;
+        mm[ym].exp += (r.cost || 0);
+      });
+    }
+    if(m.rents) {
+      m.rents.forEach(rt => {
+        var s = new Date(rt.start + 'T00:00:00'), e = new Date(rt.end + 'T00:00:00');
+        var days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        if (days <= 0) return;
+        var dailyRent = rt.amount / days;
+        for (var d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+          var ym = d.toISOString().slice(0, 7);
+          if (!mm[ym]) mm[ym] = { inc: 0, exp: 0 };
+          mm[ym].exp += dailyRent;
+        }
+      });
+    }
+  });
+  var sorted = Object.keys(mm).sort();
+  if (sorted.length === 0) { cw.style.display = 'none'; return; }
+  cw.style.display = 'block';
+  var maxV = 100;
+  sorted.forEach(k => { if (mm[k].inc > maxV) maxV = mm[k].inc; if (mm[k].exp > maxV) maxV = mm[k].exp; });
+  document.getElementById('bar-chart').innerHTML = sorted.map(k => {
+    var hI = (mm[k].inc / maxV) * 100, hE = (mm[k].exp / maxV) * 100;
+    return '<div class="bg2c"><div class="bp">' +
+           '<div class="bar bi" style="height:' + Math.max(2, hI) + 'px;width:8px" title="收入: ' + Math.round(mm[k].inc) + '"></div>' +
+           '<div class="bar be" style="height:' + Math.max(2, hE) + 'px;width:8px" title="成本+租金: ' + Math.round(mm[k].exp) + '"></div>' +
+           '</div><div class="bl">' + k.slice(5) + '月</div></div>';
   }).join('');
 }
 
 function openAddMachine() {
-  openSheet('<div class="shd"><span>新增娃娃機台</span></div>' +
-            '<div class="fg"><label for="new-m-name">機台名稱/編號</label><input type="text" id="new-m-name" placeholder="例如: A1 補位機"></div>' +
-            '<button class="prim" style="width:100%; justify-content:center; margin-top:10px" onclick="doAddMachine()">確認建立</button>');
-}
-async function doAddMachine() {
-  var n = document.getElementById('new-m-name').value.trim(); if(!n) return;
-  var nm = { id: Date.now(), name: n, records: [], rents: [] };
-  window.DB.machines.unshift(nm);
-  if(window.cloudSaveItem) await window.cloudSaveItem("machines", nm.id, nm);
-  renderHome(); closeSheet();
+  var html = '<div class="shd"><span>新增機台</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+             '<div class="fg"><label>機台名稱</label><input type="text" id="m-name" placeholder="例：大門口 A1"></div>' +
+             '<div class="fg"><label>抄表類型</label><select id="m-type"><option value="coin">幣表抄表 (投幣總計計數器)</option><option value="cash">實收抄表 (直接數現金進帳)</option></select></div>' +
+             '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="saveMachine()"><i class="ti ti-check"></i> 確認新增</button>';
+  openSheet(html);
 }
 
-async function delMachine() {
-  if(!confirm("確定要刪除此機台與所有紀錄嗎？此動作不可逆！")) return;
-  window.DB.machines = window.DB.machines.filter(m => m.id !== curMId);
-  if(window.cloudDeleteItem) await window.cloudDeleteItem("machines", curMId);
-  closeSub('sub-machine'); renderHome();
+function saveMachine() {
+  var name = document.getElementById('m-name').value.trim();
+  var type = document.getElementById('m-type').value;
+  if (!name) { alert('請輸入機台名稱'); return; }
+  var newM = { id: Date.now(), name: name, recordType: type, records: [], rents: [], inactive: false };
+  window.DB.machines.unshift(newM);
+  window.cloudSaveItem("machines", newM.id, newM);
+  closeSheet();
+  renderHome();
 }
 
-// 2. 抄表紀錄與租金管理
-function openMD(id) { curMId = id; document.getElementById('sub-machine').classList.add('on'); setMDTab('rec'); }
-function setMDTab(t) {
-  document.getElementById('t-rec').className = t=='rec'?'tab on':'tab';
-  document.getElementById('t-rent').className = t=='rent'?'tab on':'tab';
-  document.getElementById('tab-rec-content').style.display = t=='rec'?'block':'none';
-  document.getElementById('tab-rent-content').style.display = t=='rent'?'block':'none';
-  if(t=='rec') renderMDRec(); else renderMDRent();
-}
-function renderMDRec() {
-  var m = gm(), tbody = document.getElementById('rec-tb'), h = document.getElementById('th-rec-head');
+function openMD(id) {
+  curMId = id;
+  var m = gm();
+  if (!m) return;
   document.getElementById('md-title').innerText = m.name;
-  h.innerHTML = '<th>日期</th><th>本次實收</th><th>花費成本</th><th>備註</th>';
-  if(!m.records || m.records.length === 0) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#666">尚無抄表紀錄</td></tr>'; return; }
-  tbody.innerHTML = m.records.map(r => '<tr><td>'+r.date+'</td><td class="pos">$'+r.income+'</td><td class="neg">$'+r.cost+'</td><td>'+(r.note||'-')+'</td></tr>').join('');
-}
-function openAddRec() {
-  openSheet('<div class="shd"><span>新增抄表數據</span></div>' +
-            '<div class="fg"><label for="rd">抄表日期</label><input type="date" id="rd" value="'+new Date().toISOString().slice(0,10)+'"></div>' +
-            '<div class="fg"><label for="ri">實收營業額 ($)</label><input type="number" id="ri" placeholder="0"></div>' +
-            '<div class="fg"><label for="rc">補貨/出貨成本 ($)</label><input type="number" id="rc" value="0"></div>' +
-            '<div class="fg"><label for="rn-rec">備註</label><input type="text" id="rn-rec" placeholder="無"></div>' +
-            '<button class="prim" style="width:100%; justify-content:center; margin-top:10px" onclick="doAddRec()">確認送出</button>');
-}
-async function doAddRec() {
-  var m = gm(), d = document.getElementById('rd').value, i = parseInt(document.getElementById('ri').value)||0, c = parseInt(document.getElementById('rc').value)||0, n = document.getElementById('rn-rec').value.trim();
-  if(!d) return;
-  m.records.unshift({ date: d, income: i, cost: c, note: n });
-  if(window.cloudSaveItem) await window.cloudSaveItem("machines", m.id, m);
-  renderMDRec(); closeSheet();
-}
-function renderMDRent() {
-  var m = gm(), tbody = document.getElementById('rent-tb');
-  if(!m.rents || m.rents.length === 0) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#666">尚未設定租金</td></tr>'; return; }
-  tbody.innerHTML = m.rents.map(r => '<tr><td>'+r.start+'</td><td>'+r.end+'</td><td class="neg">$'+r.amount+'</td><td>'+(r.note||'-')+'</td></tr>').join('');
-}
-async function mdAddRent() {
-  var m = gm(), s = document.getElementById('rs').value, e = document.getElementById('re').value, a = parseInt(document.getElementById('ra').value)||0, n = document.getElementById('rn').value.trim();
-  if(!s || !e || !a) { alert("請填寫完整租金資訊！"); return; }
-  m.rents.unshift({ start: s, end: e, amount: a, note: n });
-  if(window.cloudSaveItem) await window.cloudSaveItem("machines", m.id, m);
-  renderMDRent(); document.getElementById('rs').value=''; document.getElementById('re').value=''; document.getElementById('ra').value=''; document.getElementById('rn').value='';
+  document.getElementById('tg-inactive').className = 'tgbox' + (m.inactive ? ' on' : '');
+  setMDTab('rec');
+  renderMDStats();
+  openSub('sub-machine');
 }
 
-// 3. 月報表綜合統計
-function renderMonthly() {
-  var div = document.getElementById('monthly-content');
-  var html = '<div class="card"><div style="font-weight:600;margin-bottom:10px">歷史總帳目表</div><table><thead><tr><th>項目名稱</th><th>總收入</th><th>總成本</th><th>總租金</th><th>淨利</th></tr></thead><tbody>';
-  window.DB.machines.forEach(m => {
-    var s = calcS(m);
-    html += '<tr><td>'+m.name+'</td><td class="pos">$'+s.inc+'</td><td class="neg">$'+s.cost+'</td><td class="neg">$'+s.rent+'</td><td>$'+s.p+'</td></tr>';
-  });
-  html += '</tbody></table></div>';
-  div.innerHTML = html;
+function renderMDStats() {
+  var m = gm(); if(!m) return;
+  var s = calcS(m);
+  document.getElementById('md-stats').innerHTML = 
+    '<div class="st"><div class="lb">總收入 / 總成本</div><div class="vl">$' + s.inc.toLocaleString() + ' / $' + s.cost.toLocaleString() + '</div></div>' +
+    '<div class="st"><div class="lb">淨利 (扣租後)</div><div class="vl ' + (s.p >= 0 ? 'pos' : 'neg') + '">$' + s.p.toLocaleString() + '</div></div>';
 }
 
-// 4. 獎品庫存管理
-function renderPrizes() {
-  var grid = document.getElementById('prize-grid'), stats = document.getElementById('prize-stats');
-  if(!window.DB.prizes || window.DB.prizes.length === 0) { grid.innerHTML='<div class="empty" style="grid-column:1/-1"><i class="ti ti-gift"></i>目前沒有庫存獎品</div>'; stats.innerHTML=''; return; }
-  var tc = 0, tq = 0;
-  window.DB.prizes.forEach(p => { tc += (parseInt(p.cost)||0)*(parseInt(p.qty)||0); tq += parseInt(p.qty)||0; });
-  stats.innerHTML = '<div class="st"><div class="lb">庫存總件數</div><div class="vl"><span>'+tq+' 件</span></div></div><div class="st"><div class="lb">壓庫總成本</div><div class="vl"><span class="neg">$'+tc.toLocaleString()+'</span></div></div>';
-  grid.innerHTML = window.DB.prizes.map((p, idx) => '<div class="pc"><div style="font-weight:600;font-size:14px">'+p.name+'</div><div style="color:var(--text2);font-size:12px;margin:5px 0">成本: $'+p.cost+' | 數量: '+p.qty+'</div><div style="font-size:11px;color:var(--text3)">'+(p.note||'無備註')+'</div><button onclick="delPrize('+idx+')" style="position:absolute;right:8px;top:8px;padding:2px 6px;border-color:var(--red);color:var(--red-text);font-size:11px">刪除</button></div>').join('');
-}
-function showAddPrize() { document.getElementById('prize-add-form').style.display='block'; }
-function cancelPrizeForm() { document.getElementById('prize-add-form').style.display='none'; }
-async function savePrize() {
-  var n = document.getElementById('pz-name').value.trim(), c = parseInt(document.getElementById('pz-cost').value)||0, q = parseInt(document.getElementById('pz-qty').value)||1, nt = document.getElementById('pz-note').value.trim();
-  if(!n) return;
-  var np = { id: Date.now(), name: n, cost: c, qty: q, note: nt };
-  window.DB.prizes.unshift(np);
-  if(window.cloudSaveItem) await window.cloudSaveItem("prizes", np.id, np);
-  renderPrizes(); cancelPrizeForm();
-  document.getElementById('pz-name').value=''; document.getElementById('pz-cost').value=''; document.getElementById('pz-qty').value='1'; document.getElementById('pz-note').value='';
-}
-async function delPrize(idx) {
-  if(!confirm("確定移除此庫存？")) return;
-  var target = window.DB.prizes[idx];
-  window.DB.prizes.splice(idx, 1);
-  if(window.cloudDeleteItem) await window.cloudDeleteItem("prizes", target.id);
-  renderPrizes();
+function setMDTab(t) {
+  document.getElementById('t-rec').className = 'tab' + (t === 'rec' ? ' on' : '');
+  document.getElementById('t-rent').className = 'tab' + (t === 'rent' ? ' on' : '');
+  document.getElementById('tab-rec-content').style.display = t === 'rec' ? 'block' : 'none';
+  document.getElementById('tab-rent-content').style.display = t === 'rent' ? 'block' : 'none';
+  if (t === 'rec') renderMDRecs(); else renderMDRents();
 }
 
-// 5. 其他雜項成本與收入
-function renderOther() {
-  var div = document.getElementById('other-list');
-  if(!window.DB.categories || window.DB.categories.length === 0) { div.innerHTML='<div class="empty"><i class="ti ti-receipt"></i>沒有建立其他項目類別</div>'; return; }
-  div.innerHTML = window.DB.categories.map(c => {
-    var total = 0; if(c.items) c.items.forEach(i=>total+=parseInt(i.amount)||0);
-    return '<div class="card tap" onclick="openCat('+c.id+')"><div style="font-weight:600;display:flex;justify-content:between"><span>'+c.name+'</span><span class="neg" style="margin-left:auto">總計: $'+total+'</span></div></div>';
+function openEditMachine() {
+  var m = gm(); if (!m) return;
+  var html = '<div class="shd"><span>修改機台</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+             '<div class="fg"><label>機台名稱</label><input type="text" id="me-name" value="' + m.name + '"></div>' +
+             '<div class="fg"><label>抄表類型</label><select id="me-type"><option value="coin"' + (m.recordType === 'coin'?' selected':'') + '>幣表抄表 (投幣總計計數器)</option><option value="cash"' + (m.recordType === 'cash'?' selected':'') + '>實收抄表 (直接數現金進帳)</option></select></div>' +
+             '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="saveEditMachine()"><i class="ti ti-check"></i> 儲存修改</button>';
+  openSheet(html);
+}
+
+function saveEditMachine() {
+  var m = gm(); if (!m) return;
+  var name = document.getElementById('me-name').value.trim();
+  var type = document.getElementById('me-type').value;
+  if (!name) { alert('請輸入機台名稱'); return; }
+  m.name = name;
+  m.recordType = type;
+  window.cloudSaveItem("machines", m.id, m);
+  document.getElementById('md-title').innerText = m.name;
+  closeSheet();
+}
+
+function delMachine() {
+  if (confirm('確定要刪除整個機台嗎？此動作將連同所有抄表與租金紀錄一起永久刪除且無法回復！')) {
+    window.cloudDeleteItem("machines", curMId);
+    window.DB.machines = window.DB.machines.filter(m => m.id !== curMId);
+    closeSub('sub-machine');
+    renderHome();
+  }
+}
+
+function toggleInactive() {
+  var m = gm(); if (!m) return;
+  m.inactive = !m.inactive;
+  document.getElementById('tg-inactive').className = 'tgbox' + (m.inactive ? ' on' : '');
+  window.cloudSaveItem("machines", m.id, m);
+}
+
+function renderMDRecs() {
+  var m = gm(); if (!m) return;
+  var head = document.getElementById('th-rec-head');
+  var body = document.getElementById('rec-tb');
+  if (m.recordType === 'coin') {
+    head.innerHTML = '<th>日期</th><th>總表值</th><th>賣刮</th><th>本次實收</th><th>成本</th><th>備註</th><th></th>';
+  } else {
+    head.innerHTML = '<th>日期</th><th>本次實收</th><th>賣刮</th><th>成本</th><th>備註</th><th></th>';
+  }
+  if (!m.records || m.records.length === 0) {
+    body.innerHTML = ''; document.getElementById('no-rec').style.display = 'block'; return;
+  }
+  document.getElementById('no-rec').style.display = 'none';
+  body.innerHTML = m.records.map((r, idx) => {
+    var actionBtn = '<button onclick="delRec(' + idx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
+    if (m.recordType === 'coin') {
+      return '<tr><td>' + r.date + '</td><td>' + r.meter + '</td><td>' + (r.scratch || 0) + '</td><td>' + r.income + '</td><td>' + (r.cost || 0) + '</td><td>' + (r.note || '') + '</td><td>' + actionBtn + '</td></tr>';
+    } else {
+      return '<tr><td>' + r.date + '</td><td>' + (r.amount || 0) + '</td><td>' + (r.scratch || 0) + '</td><td>' + (r.cost || 0) + '</td><td>' + (r.note || '') + '</td><td>' + actionBtn + '</td></tr>';
+    }
   }).join('');
 }
+
+function openAddRec() {
+  var m = gm(); if (!m) return;
+  var today = new Date().toISOString().split('T')[0];
+  var lastMeter = 0;
+  if (m.records && m.records.length > 0) lastMeter = m.records[0].meter || 0;
+  
+  var fieldHtml = '';
+  if (m.recordType === 'coin') {
+    fieldHtml = '<div class="fg"><label>本次總表值 (計數器數字)</label><input type="number" id="r-meter" placeholder="前次為: ' + lastMeter + '" oninput="calCoinInc()"></div>' +
+                '<div class="fg"><label>本次實收金額 (非必填，留空會自動用表差x10計算)</label><input type="number" id="r-amount" placeholder="自動計算" oninput="calCoinInc()"></div>' +
+                '<div class="fg"><label>預估總收入 (元)</label><input type="number" id="r-income" value="0" readonly style="opacity:0.6;background:var(--bg4)"></div>';
+  } else {
+    fieldHtml = '<div class="fg"><label>本次實收現金 (元)</label><input type="number" id="r-amount" placeholder="請輸入實收現鈔" oninput="calCashInc()"></div>' +
+                '<div class="fg"><label>預估總收入 (元)</label><input type="number" id="r-income" value="0" readonly style="opacity:0.6;background:var(--bg4)"></div>';
+  }
+  
+  var html = '<div class="shd"><span>新增抄表紀錄 (' + m.name + ')</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+             '<div class="fg"><label>抄表日期</label><input type="date" id="r-date" value="' + today + '"></div>' +
+             fieldHtml +
+             '<div class="fg2">' +
+             '  <div class="fg"><label>賣刮金額 (元)</label><input type="number" id="r-scratch" value="0"></div>' +
+             '  <div class="fg"><label>補貨成本 (元)</label><input type="number" id="r-cost" value="0"></div>' +
+             '</div>' +
+             '<div class="fg"><label>備註</label><input type="text" id="r-note" placeholder="選填"></div>' +
+             '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="saveRec()"><i class="ti ti-check"></i> 確認送出</button>';
+  openSheet(html);
+}
+
+window.calCoinInc = function() {
+  var m = gm(); if(!m) return;
+  var lastMeter = 0;
+  if (m.records && m.records.length > 0) lastMeter = m.records[0].meter || 0;
+  var curMeter = parseInt(document.getElementById('r-meter').value) || 0;
+  var inputAmt = document.getElementById('r-amount').value;
+  var incField = document.getElementById('r-income');
+  
+  if(inputAmt !== "") {
+    incField.value = parseInt(inputAmt) || 0;
+  } else {
+    var diff = curMeter - lastMeter;
+    incField.value = diff > 0 ? diff * 10 : 0;
+  }
+};
+
+window.calCashInc = function() {
+  var amt = parseInt(document.getElementById('r-amount').value) || 0;
+  document.getElementById('r-income').value = amt;
+};
+
+function saveRec() {
+  var m = gm(); if (!m) return;
+  var date = document.getElementById('r-date').value;
+  if (!date) { alert('請選擇日期'); return; }
+  
+  var record = { date: date, note: document.getElementById('r-note').value.trim(), scratch: parseInt(document.getElementById('r-scratch').value) || 0, cost: parseInt(document.getElementById('r-cost').value) || 0 };
+  
+  if (m.recordType === 'coin') {
+    var meterEl = document.getElementById('r-meter');
+    if (!meterEl.value) { alert('請輸入總表值'); return; }
+    record.meter = parseInt(meterEl.value) || 0;
+    var amtVal = document.getElementById('r-amount').value;
+    record.amount = amtVal !== "" ? parseInt(amtVal) : null;
+    record.income = parseInt(document.getElementById('r-income').value) || 0;
+  } else {
+    var amtVal = document.getElementById('r-amount').value;
+    if (!amtVal) { alert('請輸入實收現金'); return; }
+    record.amount = parseInt(amtVal) || 0;
+    record.income = record.amount;
+    record.meter = 0;
+  }
+  
+  if (!m.records) m.records = [];
+  m.records.unshift(record);
+  m.records.sort((a,b) => new Date(b.date + 'T00:00:00') - new Date(a.date + 'T00:00:00'));
+  window.cloudSaveItem("machines", m.id, m);
+  closeSheet();
+  renderMDRecs();
+  renderMDStats();
+}
+
+function delRec(idx) {
+  if (confirm('確定要刪除這筆抄表紀錄嗎？')) {
+    var m = gm(); if (!m) return;
+    m.records.splice(idx, 1);
+    window.cloudSaveItem("machines", m.id, m);
+    renderMDRecs();
+    renderMDStats();
+  }
+}
+
+function renderMDRents() {
+  var m = gm(); if (!m) return;
+  var body = document.getElementById('rent-tb');
+  if (!m.rents || m.rents.length === 0) {
+    body.innerHTML = ''; document.getElementById('no-rent').style.display = 'block'; return;
+  }
+  document.getElementById('no-rent').style.display = 'none';
+  body.innerHTML = m.rents.map((r, idx) => {
+    var s = new Date(r.start + 'T00:00:00'), e = new Date(r.end + 'T00:00:00');
+    var days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+    var modeStr = r.mode === 'monthly' ? '月繳' : r.mode === 'quarterly' ? '季繳' : r.mode === 'halfyear' ? '半年繳' : r.mode === 'yearly' ? '年繳' : '自訂';
+    var actionBtn = '<button onclick="delRent(' + idx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
+    return '<tr><td>' + r.start.slice(5) + '</td><td>' + r.end.slice(5) + '</td><td>$' + r.amount.toLocaleString() + '</td><td>' + days + '天</td><td>' + modeStr + '</td><td>' + (r.note || '') + '</td><td>' + actionBtn + '</td></tr>';
+  }).join('');
+}
+
+window.rpv = function() {
+  var sStr = document.getElementById('rs').value, eStr = document.getElementById('re').value;
+  var amt = parseFloat(document.getElementById('ra').value) || 0;
+  var txt = document.getElementById('rpv-txt');
+  if (!sStr || !eStr || amt <= 0) { txt.innerText = ''; return; }
+  var s = new Date(sStr + 'T00:00:00'), e = new Date(eStr + 'T00:00:00');
+  var days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+  if (days <= 0) { txt.innerText = '結束日期必須大於起始日期'; return; }
+  txt.innerText = '此合約共 ' + days + ' 天，平均每日租金: 約 $' + Math.round(amt / days) + ' 元';
+};
+
+function mdAddRent() {
+  var m = gm(); if (!m) return;
+  var start = document.getElementById('rs').value, end = document.getElementById('re').value;
+  var amt = parseInt(document.getElementById('ra').value) || 0;
+  var mode = document.getElementById('rp').value;
+  var note = document.getElementById('rn').value.trim();
+  if (!start || !end || amt <= 0) { alert('請填寫完整的起始、結束日期與租金金額！'); return; }
+  if (new Date(end) < new Date(start)) { alert('結束日期不能小於起始日期！'); return; }
+  
+  var r = { start: start, end: end, amount: amt, mode: mode, note: note };
+  if (!m.rents) m.rents = [];
+  m.rents.unshift(r);
+  m.rents.sort((a,b) => new Date(b.start + 'T00:00:00') - new Date(a.start + 'T00:00:00'));
+  window.cloudSaveItem("machines", m.id, m);
+  
+  document.getElementById('rs').value = ''; document.getElementById('re').value = '';
+  document.getElementById('ra').value = ''; document.getElementById('rn').value = '';
+  document.getElementById('rpv-txt').innerText = '';
+  renderMDRents();
+  renderMDStats();
+}
+
+function delRent(idx) {
+  if (confirm('確定要刪除這筆租金區間合約嗎？')) {
+    var m = gm(); if (!m) return;
+    m.rents.splice(idx, 1);
+    window.cloudSaveItem("machines", m.id, m);
+    renderMDRents();
+    renderMDStats();
+  }
+}
+
+function renderMonthly() {
+  var filter = document.getElementById('monthly-search').value.toLowerCase().trim();
+  var cont = document.getElementById('monthly-content');
+  var data = {};
+  if(!window.DB || !window.DB.machines) return;
+  window.DB.machines.forEach(m => {
+    if (m.records) {
+      m.records.forEach(r => {
+        var ym = r.date.slice(0, 7);
+        var match = !filter || ym.includes(filter) || m.name.toLowerCase().includes(filter);
+        if (!match) return;
+        if (!data[ym]) data[ym] = {};
+        if (!data[ym][m.name]) data[ym][m.name] = { inc: 0, cost: 0, rent: 0 };
+        data[ym][m.name].inc += r.income;
+        data[ym][m.name].cost += (r.cost || 0);
+      });
+    }
+    if (m.rents) {
+      m.rents.forEach(rt => {
+        var s = new Date(rt.start + 'T00:00:00'), e = new Date(rt.end + 'T00:00:00');
+        var days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        if (days <= 0) return;
+        var dailyRent = rt.amount / days;
+        for (var d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+          var ym = d.toISOString().slice(0, 7);
+          var match = !filter || ym.includes(filter) || m.name.toLowerCase().includes(filter);
+          if (!match) continue;
+          if (!data[ym]) data[ym] = {};
+          if (!data[ym][m.name]) data[ym][m.name] = { inc: 0, cost: 0, rent: 0 };
+          data[ym][m.name].rent += dailyRent;
+        }
+      });
+    }
+  });
+  var sortedYm = Object.keys(data).sort((a,b) => b.localeCompare(a));
+  if (sortedYm.length === 0) { cont.innerHTML = '<div class="empty"><i class="ti ti-search-off"></i>沒有符合搜尋條件的資料</div>'; return; }
+  cont.innerHTML = sortedYm.map(ym => {
+    var mNames = Object.keys(data[ym]);
+    var sumI = 0, sumC = 0, sumR = 0;
+    var rows = mNames.map(name => {
+      var obj = data[ym][name];
+      var rRent = Math.round(obj.rent);
+      var net = obj.inc - obj.cost - rRent;
+      sumI += obj.inc; sumC += obj.cost; sumR += rRent;
+      return '<tr><td>' + name + '</td><td class="r">$' + obj.inc.toLocaleString() + '</td><td class="r">$' + obj.cost.toLocaleString() + '</td><td class="r">$' + rRent.toLocaleString() + '</td><td class="r ' + (net >= 0 ? 'pos' : 'neg') + '">$' + net.toLocaleString() + '</td></tr>';
+    }).join('');
+    var totalNet = sumI - sumC - sumR;
+    return '<div class="mb"><div class="mhd"><i class="ti ti-folder"></i> ' + ym.slice(0,4) + ' 年 ' + ym.slice(5) + ' 月份</div>' +
+           '<div class="tw"><table><thead><tr><th>機台名稱</th><th class="r">月實收</th><th class="r">月成本</th><th class="r">分攤租金</th><th class="r">淨利</th></tr></thead>' +
+           '<tbody>' + rows + '<tr style="font-weight:600;background:var(--bg3)"><td style="border-radius:5px 0 0 5px">本月小計</td><td class="r">$' + sumI.toLocaleString() + '</td><td class="r">$' + sumC.toLocaleString() + '</td><td class="r">$' + sumR.toLocaleString() + '</td><td class="r ' + (totalNet >= 0 ? 'pos' : 'neg') + '" style="border-radius:0 5px 5px 0">$' + totalNet.toLocaleString() + '</td></tr></tbody></table></div></div>';
+  }).join('');
+}
+
+function renderPrizes() {
+  var grid = document.getElementById('prize-grid');
+  var sts = document.getElementById('prize-stats');
+  var empty = document.getElementById('empty-prizes');
+  if (!window.DB || !window.DB.prizes || window.DB.prizes.length === 0) {
+    sts.innerHTML = ''; grid.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  var totalQty = 0, totalValue = 0;
+  window.DB.prizes.forEach(p => { totalQty += p.qty; totalValue += (p.cost * p.qty); });
+  sts.innerHTML = '<div class="st"><div class="lb">庫存總數量</div><div class="vl">' + totalQty + ' 個</div></div>' +
+                  '<div class="st"><div class="lb">庫存總成本金額</div><div class="vl">$' + totalValue.toLocaleString() + '</div></div>';
+  grid.innerHTML = window.DB.prizes.map((p, idx) => {
+    var imgHtml = p.img ? '<img class="pi" src="' + p.img + '">' : '<div class="pph"><i class="ti ti-photo"></i></div>';
+    return '<div class="pc">' +
+           '  <button class="pdel" onclick="delPrize(' + idx + ')" title="刪除"><i class="ti ti-trash"></i></button>' +
+           '  <button class="pedit" onclick="editPrize(' + idx + ')" title="修改"><i class="ti ti-edit"></i></button>' +
+           imgHtml +
+           '  <div style="padding:10px 12px">' +
+           '    <div style="font-weight:600;font-size:14px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</div>' +
+           '    <div style="font-size:12px;color:var(--text2)">成本: <span style="color:var(--text);font-weight:500">$' + p.cost + '</span></div>' +
+           '    <div style="font-size:12px;color:var(--text2);display:flex;justify-content:between;margin-top:2px"><div>數量: <span style="color:var(--green-text);font-weight:600">' + p.qty + '</span></div></div>' +
+           (p.note ? '<div style="font-size:11px;color:var(--text3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.note + '</div>' : '') +
+           '  </div>' +
+           '</div>';
+  }).join('');
+}
+
+function showAddPrize() {
+  document.getElementById('pz-form-title').innerText = '新增獎品';
+  document.getElementById('pz-edit-index').value = '-1';
+  document.getElementById('pz-name').value = '';
+  document.getElementById('pz-cost').value = '';
+  document.getElementById('pz-qty').value = '1';
+  document.getElementById('pz-note').value = '';
+  document.getElementById('pz-img').value = '';
+  document.getElementById('pz-btn-submit').innerHTML = '<i class="ti ti-check"></i> 新增';
+  document.getElementById('prize-add-form').style.display = 'block';
+}
+
+function cancelPrizeForm() { document.getElementById('prize-add-form').style.display = 'none'; }
+
+function savePrize() {
+  var name = document.getElementById('pz-name').value.trim();
+  var cost = parseInt(document.getElementById('pz-cost').value) || 0;
+  var qty = parseInt(document.getElementById('pz-qty').value) || 0;
+  var note = document.getElementById('pz-note').value.trim();
+  var idx = parseInt(document.getElementById('pz-edit-index').value);
+  var fileEl = document.getElementById('pz-img');
+  if (!name) { alert('請填寫獎品名稱'); return; }
+  
+  function proceed(base64Img) {
+    var pData;
+    if (idx === -1) {
+      pData = { id: Date.now(), name: name, cost: cost, qty: qty, note: note, img: base64Img || "" };
+      if(!window.DB.prizes) window.DB.prizes = [];
+      window.DB.prizes.unshift(pData);
+    } else {
+      pData = window.DB.prizes[idx];
+      pData.name = name; pData.cost = cost; pData.qty = qty; pData.note = note;
+      if (base64Img) pData.img = base64Img;
+    }
+    window.cloudSaveItem("prizes", pData.id, pData);
+    document.getElementById('prize-add-form').style.display = 'none';
+    renderPrizes();
+  }
+  
+  if (fileEl && fileEl.files && fileEl.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) { proceed(e.target.result); };
+    reader.readAsDataURL(fileEl.files[0]);
+  } else {
+    proceed(idx !== -1 ? window.DB.prizes[idx].img : "");
+  }
+}
+
+function editPrize(idx) {
+  var p = window.DB.prizes[idx]; if (!p) return;
+  document.getElementById('pz-form-title').innerText = '修改獎品';
+  document.getElementById('pz-edit-index').value = idx;
+  document.getElementById('pz-name').value = p.name;
+  document.getElementById('pz-cost').value = p.cost;
+  document.getElementById('pz-qty').value = p.qty;
+  document.getElementById('pz-note').value = p.note || '';
+  document.getElementById('pz-img').value = '';
+  document.getElementById('pz-btn-submit').innerHTML = '<i class="ti ti-check"></i> 儲存修改';
+  document.getElementById('prize-add-form').style.display = 'block';
+  document.getElementById('p-prizes').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function delPrize(idx) {
+  if (confirm('確定要刪除此庫存品嗎？')) {
+    var p = window.DB.prizes[idx];
+    window.cloudDeleteItem("prizes", p.id);
+    window.DB.prizes.splice(idx, 1);
+    renderPrizes();
+  }
+}
+
+function renderOther() {
+  var summ = document.getElementById('other-monthly-summary');
+  var list = document.getElementById('other-list');
+  var empty = document.getElementById('empty-other');
+  if (!window.DB || !window.DB.categories || window.DB.categories.length === 0) {
+    summ.innerHTML = ''; list.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+  var catSummary = {};
+  window.DB.categories.forEach(c => {
+    var net = 0; if (c.items) { c.items.forEach(i => { if(i.type==='sell') net += i.amount; else net -= i.amount; }); }
+    catSummary[c.name] = net;
+  });
+  list.innerHTML = window.DB.categories.map(c => {
+    var net = catSummary[c.name] || 0;
+    return '<div class="card tap" onclick="openOth(' + c.id + ')">' +
+           '  <div style="display:flex;justify-content:between;align-items:center">' +
+           '    <span style="font-weight:600">' + c.name + '</span>' +
+           '    <span class="' + (net>=0?'pos':'neg') + '" style="font-weight:600">$' + net.toLocaleString() + '</span>' +
+           '  </div>' +
+           '</div>';
+  }).join('');
+}
+
 function openAddCat() {
-  var name = prompt("請輸入新類別名稱 (例如: 雜資、油錢、公關餐費):"); if(!name) return;
-  var nc = { id: Date.now(), name: name, items: [] };
-  window.DB.categories.unshift(nc);
-  if(window.cloudSaveItem) window.cloudSaveItem("categories", nc.id, nc);
+  var html = '<div class="shd"><span>新增其他收支類別</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+             '<div class="fg"><label>類別名稱</label><input type="text" id="c-name" placeholder="例：場地雜支 / 兌幣機收支"></div>' +
+             '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="saveCat()"><i class="ti ti-check"></i> 確認新增</button>';
+  openSheet(html);
+}
+
+function saveCat() {
+  var name = document.getElementById('c-name').value.trim();
+  if (!name) { alert('請輸入類別名稱'); return; }
+  var newC = { id: Date.now(), name: name, items: [] };
+  window.DB.categories.unshift(newC);
+  window.cloudSaveItem("categories", newC.id, newC);
+  closeSheet();
   renderOther();
 }
-function openCat(id) { curCId = id; var c = gc(); document.getElementById('oth-title').innerText = c.name; document.getElementById('sub-other').classList.add('on'); renderCatItems(); }
-function renderCatItems() {
-  var c = gc(), tbody = document.getElementById('oth-tb');
-  if(!c.items || c.items.length === 0) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#666">尚無任何明細</td></tr>'; return; }
-  tbody.innerHTML = c.items.map((item, idx) => '<tr><td>'+item.date+'</td><td class="neg">$'+item.amount+'</td><td>'+item.note+'</td><td><button onclick="delOthItem('+idx+')" style="padding:2px 6px;color:var(--red-text);border:none;background:none">刪除</button></td></tr>').join('');
+
+function openOth(id) {
+  curCId = id;
+  var c = gc(); if (!c) return;
+  document.getElementById('oth-title').innerText = c.name;
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('od').value = today;
+  document.getElementById('oa').value = ''; document.getElementById('on').value = '';
+  renderOthItems();
+  openSub('sub-other');
 }
-async function addOthItem() {
-  var c = gc(), d = document.getElementById('od').value, a = parseInt(document.getElementById('oa').value)||0, n = document.getElementById('on').value.trim();
-  if(!d || !a) return;
-  if(!c.items) c.items = [];
-  c.items.unshift({ date: d, amount: a, note: n||'未命名項目' });
-  if(window.cloudSaveItem) await window.cloudSaveItem("categories", c.id, c);
-  renderCatItems(); document.getElementById('oa').value=''; document.getElementById('on').value='';
+
+function renderOthItems() {
+  var c = gc(); if (!c) return;
+  var body = document.getElementById('oth-tb');
+  if (!c.items || c.items.length === 0) { body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3)">尚無任何流水帳目</td></tr>'; return; }
+  body.innerHTML = c.items.map((i, idx) => {
+    var actionBtn = '<button onclick="delOthItem(' + idx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
+    return '<tr><td>' + i.date.slice(5) + '</td><td>' + (i.type==='sell'?'<span class="tag tc">收入</span>':'<span class="tag toff">支出</span>') + '</td><td class="' + (i.type==='sell'?'pos':'neg') + '">$' + i.amount + '</td><td>' + (i.note || '') + '</td><td>' + actionBtn + '</td></tr>';
+  }).join('');
 }
-async function delOthItem(idx) {
-  var c = gc(); c.items.splice(idx, 1);
-  if(window.cloudSaveItem) await window.cloudSaveItem("categories", c.id, c);
-  renderCatItems();
+
+function addOthItem() {
+  var c = gc(); if (!c) return;
+  var date = document.getElementById('od').value;
+  var amt = parseInt(document.getElementById('oa').value) || 0;
+  var type = document.getElementById('ot').value;
+  var note = document.getElementById('on').value.trim();
+  if (!date || amt <= 0) { alert('請輸入日期與有效金額'); return; }
+  if (!c.items) c.items = [];
+  c.items.unshift({ date: date, type: type, amount: amt, note: note });
+  c.items.sort((a,b) => new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
+  window.cloudSaveItem("categories", c.id, c);
+  document.getElementById('oa').value = ''; document.getElementById('on').value = '';
+  renderOthItems();
+}
+
+function delOthItem(idx) {
+  if (confirm('確定要刪除此筆帳目嗎？')) {
+    var c = gc(); if (!c) return;
+    c.items.splice(idx, 1);
+    window.cloudSaveItem("categories", c.id, c);
+    renderOthItems();
+  }
+}
+
+function openEditCat() {
+  var c = gc(); if (!c) return;
+  var html = '<div class="shd"><span>修改類別名稱</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
+             '<div class="fg"><label>類別名稱</label><input type="text" id="ce-name" value="' + c.name + '"></div>' +
+             '<button class="prim" style="width:100%;justify-content:center;margin-top:10px" onclick="saveEditCat()"><i class="ti ti-check"></i> 儲存修改</button>';
+  openSheet(html);
+}
+
+function saveEditCat() {
+  var c = gc(); if (!c) return;
+  var name = document.getElementById('ce-name').value.trim();
+  if (!name) { alert('名稱不能為空'); return; }
+  c.name = name;
+  window.cloudSaveItem("categories", c.id, c);
+  document.getElementById('oth-title').innerText = c.name;
+  closeSheet();
+}
+
+function delCat() {
+  if (confirm('確定要刪除整個類別嗎？內含的所有收支流水明細將一併被永久刪除且無法還原！')) {
+    window.cloudDeleteItem("categories", curCId);
+    window.DB.categories = window.DB.categories.filter(c => c.id !== curCId);
+    closeSub('sub-other');
+    renderOther();
+  }
+}
+
+function doExport() {
+  if (!window.DB) return;
+  var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.DB, null, 2));
+  var dl = document.createElement('a');
+  dl.setAttribute("href", dataStr);
+  dl.setAttribute("download", "gacha_cloud_backup_" + new Date().toISOString().split('T')[0] + ".json");
+  document.body.appendChild(dl); dl.click(); dl.remove();
+}
+
+function doImport() {
+  var fileEl = document.getElementById('import-file');
+  if (!fileEl.files || !fileEl.files[0]) { alert('請先選擇一個之前匯出的備份檔 (.json)'); return; }
+  if (!window.userUID) { alert('請先登入 Google 帳號，才能將資料導入雲端。'); return; }
+  if (!confirm('導入還原將會逐筆寫入目前的 Google 雲端數據庫中。確定要開始匯入嗎？')) return;
+  
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      var json = JSON.parse(e.target.result);
+      if (!json || (!json.machines && !json.prizes && !json.categories)) { alert('檔案結構不符，請確認是否為本系統導出的 JSON 檔'); return; }
+      
+      alert('⚠️ 開始匯入，大量資料寫入雲端中，請耐心等待「導入成功」的彈出通知，請勿關閉網頁。');
+      
+      if (json.machines && Array.isArray(json.machines)) {
+        for (let m of json.machines) {
+          if (m.id) {
+            window.DB.machines = window.DB.machines.filter(x => x.id !== m.id);
+            window.DB.machines.push(m);
+            await window.cloudSaveItem("machines", m.id, m);
+          }
+        }
+      }
+      if (json.prizes && Array.isArray(json.prizes)) {
+        for (let p of json.prizes) {
+          if (p.id) {
+            window.DB.prizes = window.DB.prizes.filter(x => x.id !== p.id);
+            window.DB.prizes.push(p);
+            await window.cloudSaveItem("prizes", p.id, p);
+          }
+        }
+      }
+      if (json.categories && Array.isArray(json.categories)) {
+        for (let c of json.categories) {
+          if (c.id) {
+            window.DB.categories = window.DB.categories.filter(x => x.id !== c.id);
+            window.DB.categories.push(c);
+            await window.cloudSaveItem("categories", c.id, c);
+          }
+        }
+      }
+      window.DB.machines.sort((a,b) => b.id - a.id);
+      window.DB.prizes.sort((a,b) => b.id - a.id);
+      window.DB.categories.sort((a,b) => b.id - a.id);
+      
+      alert('✨ 還原資料備份導入雲端成功！');
+      navTo('p-machines');
+    } catch(err) {
+      alert('解析失敗: ' + err.message);
+    }
+  };
+  reader.readAsText(fileEl.files[0]);
+}
+
+async function clearAllData() {
+  if (!confirm("🚨 警告：您即將清空當前 Google 帳號下的所有雲端與本地端記帳數據！此操作永久無法回復，確定要執行嗎？")) return;
+  if (!confirm("再次確認：您真的打算刪除所有娃娃機、租金、抄表與庫存紀錄嗎？")) return;
+  
+  alert("開始清除雲端數據庫中...");
+  for (let m of window.DB.machines) await window.cloudDeleteItem("machines", m.id);
+  for (let p of window.DB.prizes) await window.cloudDeleteItem("prizes", p.id);
+  for (let c of window.DB.categories) await window.cloudDeleteItem("categories", c.id);
+
+  window.DB = { machines: [], prizes: [], categories: [] };
+  alert("✨ 雲端資料庫已恢復乾淨狀態。");
+  navTo('p-machines');
+}
+
+function exportExcel() {
+  if (!window.DB || !window.DB.machines || window.DB.machines.length === 0) { alert('無機台資料可供匯出'); return; }
+  var rows = [["機台名稱", "紀錄日期", "類型", "數據欄位", "賣刮金額", "總收入(元)", "成本(元)", "備註"]];
+  window.DB.machines.forEach(m => {
+    if(m.records){
+      m.records.forEach(r => { rows.push([m.name, r.date, m.recordType === 'coin' ? '幣表抄表' : '實收抄表', m.recordType === 'coin' ? '總表值: ' + r.meter : '實收: ' + (r.amount || 0), r.scratch||0, r.income, r.cost || 0, r.note || '']); });
+    }
+    if (m.rents) { m.rents.forEach(rt => { rows.push([m.name, rt.start + '~' + rt.end, '固定租金合約', '合約總租金', 0, 0, rt.amount, '繳費: ' + (rt.mode==='monthly'?'月繳':rt.mode==='quarterly'?'季繳':rt.mode==='halfyear'?'半年繳':rt.mode==='yearly'?'年繳':'自訂') + (rt.note ? ' / ' + rt.note : '')]); }); }
+  });
+  var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "機台收支明細");
+  XLSX.writeFile(wb, "gacha_ledger_report_" + new Date().toISOString().split('T')[0] + ".xlsx");
 }
 </script>
 </body>
