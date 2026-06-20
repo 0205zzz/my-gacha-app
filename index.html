@@ -746,20 +746,29 @@ function saveRec() {
   var date = document.getElementById('r-date').value;
   if (!date) { alert('請選擇日期'); return; }
   
-  var record = { date: date, note: document.getElementById('r-note').value.trim(), scratch: parseInt(document.getElementById('r-scratch').value) || 0, cost: parseInt(document.getElementById('r-cost').value) || 0 };
+  var scratch = parseInt(document.getElementById('r-scratch').value) || 0;
+  var cost = parseInt(document.getElementById('r-cost').value) || 0;
+  var note = document.getElementById('r-note').value.trim();
+  
+  var record = { date: date, note: note, scratch: scratch, cost: cost };
   
   if (m.recordType === 'coin') {
     var meterEl = document.getElementById('r-meter');
     if (!meterEl.value) { alert('請輸入總表值'); return; }
     record.meter = parseInt(meterEl.value) || 0;
+    
     var amtVal = document.getElementById('r-amount').value;
     record.amount = amtVal !== "" ? parseInt(amtVal) : 0; // 沒填預設 0
-    record.income = parseInt(document.getElementById('r-income').value) || 0;
+    
+    // 幣表收入 = 表單上計算出的預估收入（由計數器差額或實收決定） + 賣刮金額
+    var baseIncome = parseInt(document.getElementById('r-income').value) || 0;
+    record.income = baseIncome + scratch;
   } else {
     var amtVal = document.getElementById('r-amount').value;
-    // 拿掉 if (!amtVal) 阻擋警告，沒填直接預設 0
-    record.amount = parseInt(amtVal) || 0;
-    record.income = record.amount;
+    record.amount = parseInt(amtVal) || 0; // 沒填預設 0
+    
+    // 實收抄表總收入 = 實收現金 + 賣刮金額
+    record.income = record.amount + scratch;
     record.meter = 0;
   }
   
@@ -769,7 +778,7 @@ function saveRec() {
   window.cloudSaveItem("machines", m.id, m);
   closeSheet();
   renderMDRecs();
-  renderMDStats(); // 已確實保留，數據同步更新
+  renderMDStats();
 }
 
 function delRec(idx) {
