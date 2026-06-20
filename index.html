@@ -1078,14 +1078,104 @@ function openOth(id) {
 
 function renderOthItems() {
   var c = gc(); if (!c) return;
+  // 保持原本設定標題的邏輯（若 V24 有此行則保留）
+  if (document.getElementById('oth-title')) {
+    document.getElementById('oth-title').innerText = c.name;
+  }
   var body = document.getElementById('oth-tb');
-  if (!c.items || c.items.length === 0) { body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3)">尚無任何流水帳目</td></tr>'; return; }
   
-  body.innerHTML = c.items.map((i, idx) => {
-    var actionBtn = '<button onclick="delOthItem(' + idx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
-    // 這裡將原本的 i.date.slice(5) 修改為直接輸出完整的 i.date，以保留顯示年份 (YYYY-MM-DD)
-    return '<tr><td>' + i.date + '</td><td>' + (i.type==='sell'?'<span class="tag tc">收入</span>':'<span class="tag toff">支出</span>') + '</td><td class="' + (i.type==='sell'?'pos':'neg') + '">$' + i.amount + '</td><td>' + (i.note || '') + '</td><td>' + actionBtn + '</td></tr>';
-  }).join('');
+  // 原本的「尚無任何流水帳目」文字與結構完整保留
+  if (!c.items || c.items.length === 0) { 
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3)">尚無任何流水帳目</td></tr>'; 
+    return; 
+  }
+  
+  // 1. 建立年月分組物件
+  var groups = {};
+  var totalSum = 0; // 累積總合計
+  
+  // 為了不破壞原本 c.items 的 idx 順序，我們在物件中同時記錄原本的 idx
+  c.items.forEach((item, originalIdx) => {
+    if (!item.date) return;
+    
+    // 提取年份與月份 (例如: "2025年12月")
+    var dateParts = item.date.split('-');
+    var groupKey = dateParts[0] + '年' + parseInt(dateParts[1]) + '月';
+    
+    if (!groups[groupKey]) {
+      groups[groupKey] = { items: [], monthSum: 0 };
+    }
+    
+    // 計算金額（支出算負，收入算正）
+    var amt = parseInt(item.amount) || 0;
+    var realAmt = item.type === 'sell' ? amt : -amt;
+    
+    groups[groupKey].items.push({
+      data: item,
+      originalIdx: originalIdx,
+      realAmt: realAmt
+    });
+    
+    groups[groupKey].monthSum += realAmt;
+    totalSum += realAmt;
+  });
+  
+  // 2. 將分組依照月份由新到舊排序
+  var sortedGroupKeys = Object.keys(groups).sort((a, b) => {
+    var parseKey = function(key) {
+      var match = key.match(/(\d+)年(\d+)月/);
+      return new Date(parseInt(match[1]), parseInt(match[2]) - 1, 1);
+    };
+    return parseKey(b) - parseKey(a);
+  });
+  
+  // 3. 開始建立 HTML 畫面
+  var html = '';
+  
+  sortedGroupKeys.forEach(groupKey => {
+    var g = groups[groupKey];
+    
+    // 將該月份內部的項目也依照日期由新到舊排序
+    g.items.sort((a, b) => new Date(b.data.date + 'T00:00:00') - new Date(a.data.date + 'T00:00:00'));
+    
+    // 插入「月份小計列」：美化視覺，清楚呈現該月結餘
+    var mSumClass = g.monthSum >= 0 ? 'pos' : 'neg';
+    var mSumSign = g.monthSum >= 0 ? '+$' : '-$';
+    html += '<tr style="background:var(--bg3); font-weight:600;">' +
+            '  <td colspan="2" style="padding:8px 12px; color:var(--text);">' + groupKey + '</td>' +
+            '  <td colspan="3" class="r ' + mSumClass + '" style="padding:8px 12px; text-align:right;">月小計: ' + mSumSign + Math.abs(g.monthSum).toLocaleString() + '</td>' +
+            '</tr>';
+            
+    // 插入該月份的所有流水帳明細
+    g.items.forEach(itemObj => {
+      var i = itemObj.data;
+      
+      // 完全保留您原本的 actionBtn（帶入正確的 originalIdx）
+      var actionBtn = '<button onclick="delOthItem(' + itemObj.originalIdx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
+      
+      // 完全保留您原本的標籤樣式 (tag tc / tag toff) 與完整的 i.date
+      var tagHtml = i.type === 'sell' ? '<span class="tag tc">收入</span>' : '<span class="tag toff">支出</span>';
+      var classHtml = i.type === 'sell' ? 'pos' : 'neg';
+      
+      html += '<tr>' +
+              '  <td>' + i.date + '</td>' +
+              '  <td>' + tagHtml + '</td>' +
+              '  <td class="' + classHtml + '">$' + parseInt(i.amount).toLocaleString() + '</td>' +
+              '  <td>' + (i.note || '') + '</td>' +
+              '  <td>' + actionBtn + '</td>' +
+              '</tr>';
+    });
+  });
+  
+  // 4. 最底部加上一列「累積總合計」
+  var totalClass = totalSum >= 0 ? 'pos' : 'neg';
+  var totalSign = totalSum >= 0 ? '+$' : '-$';
+  html += '<tr style="background:var(--bg4); font-weight:bold; border-top:2px solid var(--border2);">' +
+          '  <td colspan="2" style="padding:10px 8px; font-size:14px;">累積總合計</td>' +
+          '  <td colspan="3" class="' + totalClass + '" style="padding:10px 8px; font-size:14px; text-align:right; right:0;">' + totalSign + Math.abs(totalSum).toLocaleString() + '</td>' +
+          '</tr>';
+          
+  body.innerHTML = html;
 }
 
 function addOthItem() {
