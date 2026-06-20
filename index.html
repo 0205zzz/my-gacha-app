@@ -1003,51 +1003,109 @@ function delPrize(idx) {
 }
 
 function renderOther() {
-  var summ = document.getElementById('other-stats');
   var list = document.getElementById('other-list');
   var empty = document.getElementById('empty-other');
+  var sts = document.getElementById('other-stats');
+  
   if (!window.DB || !window.DB.categories || window.DB.categories.length === 0) {
-    summ.innerHTML = ''; list.innerHTML = ''; empty.style.display = 'block'; return;
+    sts.innerHTML = ''; list.innerHTML = ''; empty.style.display = 'block'; return;
   }
   empty.style.display = 'none';
-  
-  var totalSell = 0, totalBuy = 0;
-  var catSummary = {};
-  
+
+  // 1. 計算所有類別群組的數據
+  var globalInc = 0, globalExp = 0;
+  var monthlyGroups = {};
+
   window.DB.categories.forEach(c => {
-    var net = 0; 
-    if (c.items) { 
-      c.items.forEach(i => { 
-        if(i.type === 'sell') {
-          net += i.amount; 
-          totalSell += i.amount;
-        } else { 
-          net -= i.amount; 
-          totalBuy += i.amount;
-        } 
-      }); 
-    }
-    catSummary[c.id] = net;
+    if (!c.items || c.items.length === 0) return;
+    
+    c.items.forEach(item => {
+      if (!item.date) return;
+      // 提取 "YYYY年M月"
+      var dateParts = item.date.split('-');
+      var groupKey = dateParts[0] + '年' + parseInt(dateParts[1]) + '月';
+      
+      if (!monthlyGroups[groupKey]) {
+        monthlyGroups[groupKey] = { cats: {}, monthSum: 0 };
+      }
+      
+      var amt = parseInt(item.amount) || 0;
+      var realAmt = item.type === 'sell' ? amt : -amt;
+      
+      if (item.type === 'sell') globalInc += amt; else globalExp += amt;
+      
+      // 在這個月份群組中，將同類別的金額合併
+      if (!monthlyGroups[groupKey].cats[c.id]) {
+        monthlyGroups[groupKey].cats[c.id] = {
+          id: c.id,
+          name: c.name,
+          amount: 0,
+          lastNote: item.note || ''
+        };
+      }
+      
+      monthlyGroups[groupKey].cats[c.id].amount += realAmt;
+      monthlyGroups[groupKey].monthSum += realAmt;
+    });
   });
-  
-  var totalNet = totalSell - totalBuy;
-  
-  // 渲染「其他成本」頁面上方的 總收入、總支出、合計 卡片
-  summ.innerHTML = '<div class="st"><div class="lb">總收入</div><div class="vl" style="color:var(--green-text)">$' + totalSell.toLocaleString() + '</div></div>' +
-                  '<div class="st"><div class="lb">總支出</div><div class="vl" style="color:var(--red-text)">$' + totalBuy.toLocaleString() + '</div></div>' +
-                  '<div class="st"><div class="lb">合計</div><div class="vl ' + (totalNet >= 0 ? 'pos' : 'neg') + '">$' + totalNet.toLocaleString() + '</div></div>';
 
-  list.innerHTML = window.DB.categories.map(c => {
-    var net = catSummary[c.id] || 0;
-    return '<div class="card tap" onclick="openOth(' + c.id + ')">' +
-           '  <div style="display:flex;justify-content:space-between;align-items:center">' +
-           '    <span style="font-weight:600">' + c.name + '</span>' +
-           '    <span class="' + (net>=0?'pos':'neg') + '" style="font-weight:600">$' + net.toLocaleString() + '</span>' +
-           '  </div>' +
-           '</div>';
-  }).join('');
+  // 2. 將累積總合計（總結餘）放置於最頂端的三格統計小卡片中
+  var globalTotal = globalInc - globalExp;
+  sts.innerHTML = '<div class="st"><div class="lb">類別總收入</div><div class="vl">$' + globalInc.toLocaleString() + '</div></div>' +
+                  '<div class="st"><div class="lb">類別總支出</div><div class="vl">$' + globalExp.toLocaleString() + '</div></div>' +
+                  '<div class="st"><div class="lb">累積總合計</div><div class="vl ' + (globalTotal >= 0 ? 'pos' : 'neg') + '">$' + globalTotal.toLocaleString() + '</div></div>';
+
+  // 3. 排序月份（由新到舊，2026年1月 -> 2025年12月）
+  var sortedMonthKeys = Object.keys(monthlyGroups).sort((a, b) => {
+    var parseKey = function(key) {
+      var match = key.match(/(\d+)年(\d+)月/);
+      return new Date(parseInt(match[1]), parseInt(match[2]) - 1, 1);
+    };
+    return parseKey(b) - parseKey(a);
+  });
+
+  if (sortedMonthKeys.length === 0) {
+    list.innerHTML = '<div class="empty"><i class="ti ti-receipt"></i>尚無任何流水帳目</div>';
+    return;
+  }
+
+  // 4. 串接月分組與類別列表 HTML
+  var html = '';
+  
+  sortedMonthKeys.forEach(monthKey => {
+    var g = monthlyGroups[monthKey];
+    var mSumClass = g.monthSum >= 0 ? 'pos' : 'neg';
+    var mSumSign = g.monthSum >= 0 ? '+$' : '-$';
+    
+    // 輸出月份的小計橫條
+    html += '<div style="background:var(--bg3); padding:6px 12px; font-weight:600; font-size:13px; border-radius:var(--radius-sm); margin:12px 0 6px; display:flex; justify-content:space-between; align-items:center;">' +
+            '  <span style="color:var(--text);">' + monthKey + '</span>' +
+            '  <span class="' + mSumClass + '">月小計: ' + mSumSign + Math.abs(g.monthSum).toLocaleString() + '</span>' +
+            '</div>';
+            
+    // 輸出該月份底下有發生記帳的類別卡片
+    Object.keys(g.cats).forEach(cId => {
+      var catData = g.cats[cId];
+      var catAmt = catData.amount;
+      var classHtml = catAmt >= 0 ? 'pos' : 'neg';
+      var signHtml = catAmt >= 0 ? '$' : '-$';
+      
+      var tagHtml = catAmt >= 0 ? '<span class="tag tc">收入</span>' : '<span class="tag toff">支出</span>';
+      var noteHtml = catData.lastNote ? '<div style="font-size:11px; color:var(--text3); margin-top:2px;">摘要: ' + catData.lastNote + '</div>' : '';
+
+      html += '<div class="card tap" onclick="openOth(' + catData.id + ')">' +
+              '  <div style="display:flex; justify-content:space-between; align-items:center;">' +
+              '    <div style="font-weight:600; font-size:14px;">' + catData.name + ' ' + tagHtml + '</div>' +
+              '    <div class="' + classHtml + '" style="font-weight:600; font-size:15px;">' + signHtml + Math.abs(catAmt).toLocaleString() + '</div>' +
+              '  </div>' +
+              noteHtml +
+              '</div>';
+    });
+  });
+
+  // 最底部的加總條已經移除，直接寫入列表
+  list.innerHTML = html;
 }
-
 function openAddCat() {
   var html = '<div class="shd"><span>新增其他收支類別</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
              '<div class="fg"><label>類別名稱</label><input type="text" id="c-name" placeholder="例：場地雜支 / 兌幣機收支"></div>' +
@@ -1078,104 +1136,14 @@ function openOth(id) {
 
 function renderOthItems() {
   var c = gc(); if (!c) return;
-  // 保持原本設定標題的邏輯（若 V24 有此行則保留）
-  if (document.getElementById('oth-title')) {
-    document.getElementById('oth-title').innerText = c.name;
-  }
   var body = document.getElementById('oth-tb');
+  if (!c.items || c.items.length === 0) { body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3)">尚無任何流水帳目</td></tr>'; return; }
   
-  // 原本的「尚無任何流水帳目」文字與結構完整保留
-  if (!c.items || c.items.length === 0) { 
-    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3)">尚無任何流水帳目</td></tr>'; 
-    return; 
-  }
-  
-  // 1. 建立年月分組物件
-  var groups = {};
-  var totalSum = 0; // 累積總合計
-  
-  // 為了不破壞原本 c.items 的 idx 順序，我們在物件中同時記錄原本的 idx
-  c.items.forEach((item, originalIdx) => {
-    if (!item.date) return;
-    
-    // 提取年份與月份 (例如: "2025年12月")
-    var dateParts = item.date.split('-');
-    var groupKey = dateParts[0] + '年' + parseInt(dateParts[1]) + '月';
-    
-    if (!groups[groupKey]) {
-      groups[groupKey] = { items: [], monthSum: 0 };
-    }
-    
-    // 計算金額（支出算負，收入算正）
-    var amt = parseInt(item.amount) || 0;
-    var realAmt = item.type === 'sell' ? amt : -amt;
-    
-    groups[groupKey].items.push({
-      data: item,
-      originalIdx: originalIdx,
-      realAmt: realAmt
-    });
-    
-    groups[groupKey].monthSum += realAmt;
-    totalSum += realAmt;
-  });
-  
-  // 2. 將分組依照月份由新到舊排序
-  var sortedGroupKeys = Object.keys(groups).sort((a, b) => {
-    var parseKey = function(key) {
-      var match = key.match(/(\d+)年(\d+)月/);
-      return new Date(parseInt(match[1]), parseInt(match[2]) - 1, 1);
-    };
-    return parseKey(b) - parseKey(a);
-  });
-  
-  // 3. 開始建立 HTML 畫面
-  var html = '';
-  
-  sortedGroupKeys.forEach(groupKey => {
-    var g = groups[groupKey];
-    
-    // 將該月份內部的項目也依照日期由新到舊排序
-    g.items.sort((a, b) => new Date(b.data.date + 'T00:00:00') - new Date(a.data.date + 'T00:00:00'));
-    
-    // 插入「月份小計列」：美化視覺，清楚呈現該月結餘
-    var mSumClass = g.monthSum >= 0 ? 'pos' : 'neg';
-    var mSumSign = g.monthSum >= 0 ? '+$' : '-$';
-    html += '<tr style="background:var(--bg3); font-weight:600;">' +
-            '  <td colspan="2" style="padding:8px 12px; color:var(--text);">' + groupKey + '</td>' +
-            '  <td colspan="3" class="r ' + mSumClass + '" style="padding:8px 12px; text-align:right;">月小計: ' + mSumSign + Math.abs(g.monthSum).toLocaleString() + '</td>' +
-            '</tr>';
-            
-    // 插入該月份的所有流水帳明細
-    g.items.forEach(itemObj => {
-      var i = itemObj.data;
-      
-      // 完全保留您原本的 actionBtn（帶入正確的 originalIdx）
-      var actionBtn = '<button onclick="delOthItem(' + itemObj.originalIdx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
-      
-      // 完全保留您原本的標籤樣式 (tag tc / tag toff) 與完整的 i.date
-      var tagHtml = i.type === 'sell' ? '<span class="tag tc">收入</span>' : '<span class="tag toff">支出</span>';
-      var classHtml = i.type === 'sell' ? 'pos' : 'neg';
-      
-      html += '<tr>' +
-              '  <td>' + i.date + '</td>' +
-              '  <td>' + tagHtml + '</td>' +
-              '  <td class="' + classHtml + '">$' + parseInt(i.amount).toLocaleString() + '</td>' +
-              '  <td>' + (i.note || '') + '</td>' +
-              '  <td>' + actionBtn + '</td>' +
-              '</tr>';
-    });
-  });
-  
-  // 4. 最底部加上一列「累積總合計」
-  var totalClass = totalSum >= 0 ? 'pos' : 'neg';
-  var totalSign = totalSum >= 0 ? '+$' : '-$';
-  html += '<tr style="background:var(--bg4); font-weight:bold; border-top:2px solid var(--border2);">' +
-          '  <td colspan="2" style="padding:10px 8px; font-size:14px;">累積總合計</td>' +
-          '  <td colspan="3" class="' + totalClass + '" style="padding:10px 8px; font-size:14px; text-align:right; right:0;">' + totalSign + Math.abs(totalSum).toLocaleString() + '</td>' +
-          '</tr>';
-          
-  body.innerHTML = html;
+  body.innerHTML = c.items.map((i, idx) => {
+    var actionBtn = '<button onclick="delOthItem(' + idx + ')" style="padding:4px 8px;border-color:transparent;color:var(--red-text)"><i class="ti ti-trash"></i></button>';
+    // 這裡將原本的 i.date.slice(5) 修改為直接輸出完整的 i.date，以保留顯示年份 (YYYY-MM-DD)
+    return '<tr><td>' + i.date + '</td><td>' + (i.type==='sell'?'<span class="tag tc">收入</span>':'<span class="tag toff">支出</span>') + '</td><td class="' + (i.type==='sell'?'pos':'neg') + '">$' + i.amount + '</td><td>' + (i.note || '') + '</td><td>' + actionBtn + '</td></tr>';
+  }).join('');
 }
 
 function addOthItem() {
