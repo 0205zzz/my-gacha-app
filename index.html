@@ -1029,15 +1029,16 @@ function renderOther() {
                   '<div class="st"><div class="lb">類別總支出</div><div class="vl">$' + globalExp.toLocaleString() + '</div></div>' +
                   '<div class="st"><div class="lb">累積總合計</div><div class="vl ' + (globalTotal >= 0 ? 'pos' : 'neg') + '">$' + globalTotal.toLocaleString() + '</div></div>';
 
-  // 2. 開始串接下方的類別列表與其內部的月份小計
+  // 2. 開始串接下方的類別列表
   var html = '';
 
   window.DB.categories.forEach(c => {
-    // 如果該類別完全沒有項目，就不渲染（或可保留顯示為0）
     if (!c.items || c.items.length === 0) return;
 
-    // 將此類別底下的帳目依據「年月」進行加總
+    // 將此類別底下的帳目依據「年月」進行加總，同時計算該類別的總合計
     var catMonthly = {};
+    var catTotal = 0; // 該類別的所有月份總合計
+    
     c.items.forEach(item => {
       if (!item.date) return;
       var dateParts = item.date.split('-');
@@ -1046,10 +1047,13 @@ function renderOther() {
       if (!catMonthly[monthKey]) catMonthly[monthKey] = 0;
       
       var amt = parseInt(item.amount) || 0;
-      if (item.type === 'sell') catMonthly[monthKey] += amt; else catMonthly[monthKey] -= amt;
+      var realAmt = item.type === 'sell' ? amt : -amt;
+      
+      catMonthly[monthKey] += realAmt;
+      catTotal += realAmt;
     });
 
-    // 將月份排序（由新到舊，例如 2026年1月 -> 2025年12月）
+    // 將月份排序（由新到舊）
     var sortedMonths = Object.keys(catMonthly).sort((a, b) => {
       var parseKey = function(key) {
         var match = key.match(/(\d+)年(\d+)月/);
@@ -1058,19 +1062,26 @@ function renderOther() {
       return parseKey(b) - parseKey(a);
     });
 
-    // 建立每個類別的大卡片外框（點擊依然可以開啟原本的詳細流水帳明細）
-    html += '<div class="card tap" onclick="openOth(' + c.id + ')" style="margin-bottom: 12px; padding: 14px 16px;">' +
-            '  <div style="font-weight: 600; font-size: 15px; margin-bottom: 8px; border-bottom: 1px dashed var(--border); padding-bottom: 6px; color: var(--text);">' + c.name + '</div>';
+    // 類別總合計的顏色與正負號判斷
+    var cTotalClass = catTotal >= 0 ? 'pos' : 'neg';
+    var cTotalSign = catTotal >= 0 ? '$' : '-$';
 
-    // 逐行輸出該類別內部的各月份月小計（不顯示摘要）
+    // 建立大卡片（上方標題列改為左右兩端對齊，右邊塞入「合計」）
+    html += '<div class="card tap" onclick="openOth(' + c.id + ')" style="margin-bottom: 12px; padding: 14px 16px;">' +
+            '  <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; margin-bottom: 8px; border-bottom: 1px dashed var(--border); padding-bottom: 6px;">' +
+            '    <span style="color: var(--text);">' + c.name + '</span>' +
+            '    <span class="' + cTotalClass + '" style="font-size: 14px;">合計: ' + cTotalSign + Math.abs(catTotal).toLocaleString() + '</span>' +
+            '  </div>';
+
+    // 逐行輸出該類別內部的各月份月小計
     sortedMonths.forEach(month => {
       var mSum = catMonthly[month];
-      var classHtml = mSum >= 0 ? 'pos' : 'neg';
-      var signHtml = mSum >= 0 ? '+$' : '-$';
+      var mClass = mSum >= 0 ? 'pos' : 'neg';
+      var mSign = mSum >= 0 ? '+$' : '-$';
 
       html += '  <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 13px;">' +
               '    <span style="color: var(--text2);">' + month + '</span>' +
-              '    <span class="' + classHtml + '" style="font-weight: 500;">月小計: ' + signHtml + Math.abs(mSum).toLocaleString() + '</span>' +
+              '    <span class="' + mClass + '" style="font-weight: 500;">月小計: ' + mSign + Math.abs(mSum).toLocaleString() + '</span>' +
               '  </div>';
     });
 
@@ -1079,6 +1090,7 @@ function renderOther() {
 
   list.innerHTML = html;
 }
+
 
 function openAddCat() {
   var html = '<div class="shd"><span>新增其他收支類別</span><button class="ghost" onclick="closeSheet()">取消</button></div>' +
